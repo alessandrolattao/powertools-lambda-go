@@ -20,7 +20,9 @@ Powertools capability to Go, written the way Go is written today.
 4. **Safe under concurrency.** Lambda Managed Instances run several
    invocations in one process. Per-invocation state lives in the
    `context.Context`, never in package variables.
-5. **The standard library first.** `log/slog`, `encoding/json/v2`, `iter`,
+5. **Go 1.27.** Generic methods, the `uuid` package, and `encoding/json/v2`,
+   whose experiment Go 1.27 enables by default.
+6. **The standard library first.** `log/slog`, `encoding/json/v2`, `iter`,
    `uuid`, `net/http`. OpenTelemetry for traces, exported to X-Ray as the AWS
    X-Ray SDK migration guide prescribes.
 
