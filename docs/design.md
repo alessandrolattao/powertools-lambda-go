@@ -147,10 +147,21 @@ them the same way.
 - **Circuit breakers are values** created once (in `main` or at package
   level). Each owns its failure counter; the half-open probe owner is the
   breaker instance.
+- **Values that change shape** (a parameter that is a string, bytes or a
+  JSON document) are read through generic functions: the caller names the Go
+  type, the transform decodes into it.
+- **Ordered configuration is a slice**, never a map (masking rules, routes).
+- **Time zones are embedded** (`time/tzdata`) by the packages that evaluate
+  time conditions, since Lambda's OS images do not guarantee a zone database.
+  Such packages take an injectable clock for tests.
 - **Libraries.** JMESPath: `github.com/jmespath-community/go-jmespath`.
   JSON Schema: `github.com/santhosh-tekuri/jsonschema/v6`. Avro:
   `github.com/twmb/avro` (`hamba/avro` is archived). Protobuf:
-  `google.golang.org/protobuf`.
+  `google.golang.org/protobuf`. JWT: `github.com/lestrrat-go/jwx/v4`, with
+  our own JWKS cache (Powertools never serves keys whose refresh failed).
+  OAuth2: `golang.org/x/oauth2/clientcredentials` for the token request, our
+  own caching. Encryption: the AWS Encryption SDK for Go, interoperable with
+  the Python SDK. JSONPath: `github.com/ohler55/ojg`.
 
 ## Not ported
 
