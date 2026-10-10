@@ -42,7 +42,7 @@ One package per utility, named after its Python module:
 | `featureflags` | `utilities.feature_flags` | |
 | `validation` | `utilities.validation` | JSON Schema |
 | `parser` | `utilities.parser` | typed parsing and envelopes |
-| `events` | `utilities.data_classes` | only the event types aws-lambda-go lacks |
+| `eventsource` | `utilities.data_classes` | only the event types aws-lambda-go lacks, and helpers |
 | `jmespath` | `utilities.jmespath_utils` | JMESPath with the Powertools functions |
 | `streaming` | `utilities.streaming` | |
 | `kafka` | `utilities.kafka` | |
@@ -112,12 +112,52 @@ Utilities never log to the user's logger. Internal diagnostics go to
 - `golangci-lint run ./...` reports 0 issues under `.golangci.yml`. A
   `//nolint` names the linter and says why.
 
+## Decisions
+
+Answers to the questions the port raised, so that every package answers
+them the same way.
+
+- **Upstream bugs are fixed, not copied**, and the package documentation
+  says what differs. Examples: the Redis idempotency layer forgetting the
+  validation hash, Kafka Protobuf message indexes read without zigzag
+  decoding.
+- **Decoding is lenient**, like aws-lambda-go: unknown fields are ignored,
+  missing ones stay zero. Validation is opt-in: `parser` calls
+  `Validate() error` on a target that has it, and `validation` checks JSON
+  Schema.
+- **JSON v2 matches names case-sensitively.** Where AWS spells one field two
+  ways (SNS `UnsubscribeUrl` / `UnsubscribeURL` through SQS), decoding uses
+  `json.MatchCaseInsensitiveNames(true)`.
+- **No network unless asked.** JSON Schema `$ref` to remote URLs is not
+  fetched by default; a loader option enables it.
+- **Panics are bugs, but a batch survives them.** Batch processing recovers a
+  panicking record handler and reports the record as failed. Idempotency
+  deletes the in-progress record and re-panics. Middlewares never swallow
+  panics otherwise.
+- **Cancellation.** When the invocation's context ends, batch processing stops
+  and reports the unprocessed records as failed; idempotency treats it as an
+  error of the wrapped function.
+- **Idempotency hashes JSON the way Python does** (`json.dumps` with sorted
+  keys, its separators and `ensure_ascii`), with MD5 by default, so that a Go
+  and a Python function can share records when they share a key prefix. The
+  typed input is marshalled with `encoding/json/v2` first: fields the
+  function's type drops do not take part in the key.
+- **Redis means go-redis v9** (`redis.UniversalClient`: standalone, cluster,
+  sentinel; Valkey speaks the same protocol), as Python means redis-py.
+- **Circuit breakers are values** created once (in `main` or at package
+  level). Each owns its failure counter; the half-open probe owner is the
+  breaker instance.
+- **Libraries.** JMESPath: `github.com/jmespath-community/go-jmespath`.
+  JSON Schema: `github.com/santhosh-tekuri/jsonschema/v6`. Avro:
+  `github.com/twmb/avro` (`hamba/avro` is archived). Protobuf:
+  `google.golang.org/protobuf`.
+
 ## Not ported
 
 | Python | Why |
 |---|---|
 | Typing (`LambdaContext` type hints) | Go is statically typed; `lambdacontext.LambdaContext` is the context. |
-| Event source data classes | `github.com/aws/aws-lambda-go/events` has the event structs; `events` adds only the missing ones. |
+| Event source data classes | `github.com/aws/aws-lambda-go/events` has the event structs; `eventsource` adds only the missing ones. |
 | Pydantic models | Go structs with `encoding/json/v2` are the models; `parser` adds envelopes and validation. |
 | X-Ray SDK patching (`patch_modules`) | OpenTelemetry instrumentation of the AWS SDK and `net/http` replaces it. |
 | Boto3 user agent feature tracking | It reports usage of the official Powertools; an unofficial port must not pose as one. |
