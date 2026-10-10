@@ -51,7 +51,8 @@ One package per utility, named after its Python module:
 | `metadata` | `utilities.metadata` | |
 
 `internal/env` reads the environment, `internal/coldstart` decides the cold
-invocation, `internal/debug` is the `POWERTOOLS_DEBUG` logger.
+invocation, `internal/debug` is the `POWERTOOLS_DEBUG` logger,
+`internal/output` serializes the records written to standard output.
 
 ## Conventions
 
@@ -154,6 +155,19 @@ them the same way.
 - **Time zones are embedded** (`time/tzdata`) by the packages that evaluate
   time conditions, since Lambda's OS images do not guarantee a zone database.
   Such packages take an injectable clock for tests.
+- **One writer for standard output.** Log lines, EMF documents and Datadog
+  metrics of concurrent invocations share stdout; every record goes through
+  `internal/output` in a single `Write`.
+- **The trace id comes from the context**: the active OpenTelemetry span,
+  else the `x-amzn-trace-id` value aws-lambda-go stores in the context, and
+  `_X_AMZN_TRACE_ID` only as a last resort (aws-lambda-go sets it only at
+  concurrency 1).
+- **Logs are filterable by Lambda.** Records carry Lambda's level names
+  (`DEBUG`, `INFO`, `WARN`, `ERROR`) and RFC 3339 timestamps with
+  milliseconds, since Lambda's log-level filtering for custom runtimes needs
+  both. Python's level names and timestamp format are an option.
+- **Warnings** (Python's `warnings` module) are JSON records at `WARN` on
+  standard error, once per cause.
 - **Libraries.** JMESPath: `github.com/jmespath-community/go-jmespath`.
   JSON Schema: `github.com/santhosh-tekuri/jsonschema/v6`. Avro:
   `github.com/twmb/avro` (`hamba/avro` is archived). Protobuf:
