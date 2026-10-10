@@ -237,6 +237,10 @@ linters:
         - whyNoLint
         - hugeParam # aws-lambda-go hands events over by value
 
+    gomoddirectives:
+      # The integration module tests this one through a local replace.
+      replace-local: true
+
     nolintlint:
       require-explanation: true
       require-specific: true
