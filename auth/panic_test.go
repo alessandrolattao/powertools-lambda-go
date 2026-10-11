@@ -23,7 +23,7 @@ func (p *panicOnce) RoundTrip(r *http.Request) (*http.Response, error) {
 	if p.calls.Add(1) == 1 {
 		panic(errTransportBug)
 	}
-	return p.base.RoundTrip(r) //nolint:wrapcheck // a transparent test transport
+	return p.base.RoundTrip(r)
 }
 
 // A transport that panics during a refresh must not leave the verifiers
