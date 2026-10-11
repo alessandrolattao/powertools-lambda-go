@@ -542,14 +542,13 @@ resp, err := handler(ctx, events.APIGatewayProxyRequest{HTTPMethod: "GET", Path:
 
 ## Differences from Powertools Python
 
-- A JSON number no Go field could hold (an exponent beyond 400, or a
+* A JSON number no Go field could hold (an exponent beyond 400, or a
   literal longer than 4096 characters, such as `1e999999`) is refused with
   a 422 `json_invalid` before any exact arithmetic, which it would otherwise
   make take tens of milliseconds each. Python reads it as infinity and
   rejects it later as `finite_number`.
-- A `float32` parameter is validated at its own precision: `0.1` meets
+* A `float32` parameter is validated at its own precision: `0.1` meets
   `maximum:"0.1"`.
-
 * Handlers are `net/http` handlers and typed operations; there are no
   resolver classes, no `app.current_event` (read the event from the request
   context), no `append_context` (context values) and no `Depends()`.

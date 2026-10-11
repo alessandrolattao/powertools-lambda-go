@@ -324,7 +324,6 @@ own decoding, as `lambda.Start` does.
   `ErrInvalidWireFormat`. Python inflates without a bound, so a few
   kilobytes of compressed zeros can exhaust the function's memory on every
   retry.
-
 - Keys and values come out typed (`K`, `V`), not as dictionaries, and schemas
   are parsed when the function starts.
 - Confluent Protobuf message indexes are decoded as zigzag varints, as the

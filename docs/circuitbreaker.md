@@ -370,7 +370,6 @@ same. To test how your code handles an open circuit, give the breaker a
   when its local cache still names it as the owner, and every won election
   starts a fresh success streak: successes counted under an earlier lease
   never close the circuit early.
-
 - The `@circuit_breaker` decorator is a `Breaker` value with the generic
   methods `Wrap` and `Call`; `CircuitBreakerConfig` is the options of `New`.
 - `on_circuit_open` is `OnCircuitOpen`, an option of `Wrap`; it receives the
