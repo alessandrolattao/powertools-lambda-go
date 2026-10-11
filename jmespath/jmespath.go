@@ -209,8 +209,10 @@ func Generic(data any) (any, error) {
 			return nil, fmt.Errorf("marshal %T: %w", data, err)
 		}
 	}
+	// Python's json module, which Powertools Python reads events with, keeps
+	// the last of duplicate names; so does this.
 	var generic any
-	if err := json.Unmarshal(raw, &generic); err != nil {
+	if err := json.Unmarshal(raw, &generic, jsontext.AllowDuplicateNames(true)); err != nil {
 		return nil, fmt.Errorf("parse JSON: %w", err)
 	}
 	return generic, nil

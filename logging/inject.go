@@ -33,8 +33,12 @@ func WithLogEvent(enabled bool) InjectOption {
 // WithCorrelationIDPath sets the correlation id of every invocation to what
 // the JMESPath expression selects in the event; the Correlation constants
 // cover the common event sources. The Powertools JMESPath functions are
-// available. An expression that does not compile, or fails on an event,
-// fails the invocation, as in Powertools Python.
+// available. An expression that does not compile fails every invocation, as
+// in Powertools Python: it is a programming error. An event the expression
+// cannot be evaluated against (a payload that is not JSON the way the
+// expression expects) leaves the invocation without a correlation id: a
+// logging feature never stops a function, and the handler's own decoding
+// reports a malformed event better.
 func WithCorrelationIDPath(expression string) InjectOption {
 	return func(c *injectConfig) { c.correlationPath = expression }
 }
@@ -147,9 +151,10 @@ func (inj *injector) start(ctx context.Context, event any) (_ context.Context, d
 	if inj.correlation != nil {
 		selected, err := inj.correlation.Search(event)
 		if err != nil {
-			return ctx, done, fmt.Errorf("logging: correlation id: %w", err)
+			debug.Logger().DebugContext(ctx, "logging: no correlation id in this event", "err", err)
+		} else {
+			setCorrelation(ctx, correlationValue(selected))
 		}
-		setCorrelation(ctx, correlationValue(selected))
 	}
 	if inj.logEvent {
 		inj.h.logEvent(ctx, event, inj.pc)

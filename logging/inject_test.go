@@ -140,7 +140,7 @@ func TestCorrelationIDFromAnEventStruct(t *testing.T) {
 	assert.Equal(t, "r-9", seen)
 }
 
-func TestCorrelationPathErrorsFailTheInvocation(t *testing.T) {
+func TestCorrelationPathErrors(t *testing.T) {
 	t.Parallel()
 	f := newFixture(t)
 	called := false
@@ -149,10 +149,12 @@ func TestCorrelationPathErrorsFailTheInvocation(t *testing.T) {
 		return "", nil
 	}
 	_, err := f.logger.InjectContext(next, WithCorrelationIDPath("a[?"))(t.Context(), jsontext.Value(`{}`))
-	require.Error(t, err)
-	_, err = f.logger.InjectContext(next, WithCorrelationIDPath("powertools_json(a)"))(t.Context(), jsontext.Value(`{"a":"{"}`))
-	require.Error(t, err)
+	require.Error(t, err, "an expression that does not compile is a programming error")
 	assert.False(t, called)
+
+	_, err = f.logger.InjectContext(next, WithCorrelationIDPath("powertools_json(a)"))(t.Context(), jsontext.Value(`{"a":"{"}`))
+	require.NoError(t, err, "an event the expression cannot read only lacks a correlation id")
+	assert.True(t, called)
 }
 
 func TestClearState(t *testing.T) {
