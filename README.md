@@ -107,3 +107,9 @@ golangci-lint run ./...             # strict configuration, see .golangci.yml
 
 Fuzz tests cover every parser of untrusted input:
 `go test -run=^$ -fuzz=FuzzSearch ./jmespath/`.
+
+## License
+
+MIT, see [LICENSE](LICENSE). Powertools for AWS Lambda (Python), which this
+port follows, is MIT-0. The Swagger UI assets embedded in
+`eventhandler/swaggerui` are Apache-2.0, with their own LICENSE and NOTICE.
