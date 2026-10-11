@@ -299,7 +299,7 @@ func TestGoldenEMF(t *testing.T) {
 				invoke(t, m, func(ctx context.Context) error {
 					require.NoError(t, metrics.AddDimension(ctx, "city", "Zürich ☕ 😀"))
 					require.NoError(t, metrics.AddMetric(ctx, "Ünits", metrics.Count, 1))
-					return metrics.AddMetadata(ctx, "note", "tab\there \"quoted\" \\ back\x7fdel  ")
+					return metrics.AddMetadata(ctx, "note", "tab\there \"quoted\" \\ back\x7fdel \u2028")
 				})
 			},
 		},
