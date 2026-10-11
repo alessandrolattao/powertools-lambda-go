@@ -1,0 +1,1 @@
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"ServerlessAirline","Dimensions":[["environment","service"]],"Metrics":[{"Name":"TurbineReads","Unit":"Count"}]}]},"environment":"dev","service":"booking","TurbineReads":[1.0,8.0]}

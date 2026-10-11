@@ -1,0 +1,1 @@
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"TestApp","Dimensions":[[],["environment","region"],["environment","region"],["environment"]],"Metrics":[{"Name":"TestMetric","Unit":"Count"}]}]},"environment":"prod","region":"us-west-2","TestMetric":[1.0]}

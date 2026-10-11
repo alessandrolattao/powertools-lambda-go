@@ -1,0 +1,2 @@
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"ServerlessAirline","Dimensions":[["environment","log_group","service"]],"Metrics":[{"Name":"metric_one","Unit":"Count"}]}]},"environment":"test","log_group":"/lambda/test","service":"booking","metric_one":[1.0]}
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"ServerlessAirline","Dimensions":[["environment","log_group","service"]],"Metrics":[{"Name":"metric_one","Unit":"Count"}]}]},"environment":"test","log_group":"/lambda/test","service":"booking","metric_one":[1.0]}

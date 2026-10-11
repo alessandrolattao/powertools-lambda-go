@@ -1,0 +1,3 @@
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"ServerlessAirline","Dimensions":[["function_name","service"]],"Metrics":[{"Name":"ColdStart","Unit":"Count"}]}]},"function_name":"test","service":"booking","ColdStart":[1.0]}
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"ServerlessAirline","Dimensions":[["test_dimension","service"]],"Metrics":[{"Name":"SuccessfulBooking","Unit":"Count"}]}]},"test_dimension":"test","service":"booking","SuccessfulBooking":[1.0]}
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"ServerlessAirline","Dimensions":[["test_dimension","service"]],"Metrics":[{"Name":"SuccessfulBooking","Unit":"Count"}]}]},"test_dimension":"test","service":"booking","SuccessfulBooking":[1.0]}
