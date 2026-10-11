@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/alessandrolattao/powertools-lambda-go/internal/coldstart"
+	"github.com/alessandrolattao/powertools-lambda-go/internal/warn"
 	"github.com/alessandrolattao/powertools-lambda-go/metrics"
-	"github.com/alessandrolattao/powertools-lambda-go/metrics/internal/warn"
 )
 
 // documents parses the EMF documents written to out, one per line.
@@ -685,7 +685,7 @@ func TestWarnings(t *testing.T) { //nolint:paralleltest // warnings are captured
 	}
 	messages := make([]any, len(records))
 	for i, r := range records {
-		messages[i] = r["msg"]
+		messages[i] = r["message"]
 	}
 	assert.Equal(t, []any{
 		warn.NoMetrics,

@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alessandrolattao/powertools-lambda-go/metrics/internal/warn"
+	"github.com/alessandrolattao/powertools-lambda-go/internal/warn"
 )
 
 type ctxKey struct{}

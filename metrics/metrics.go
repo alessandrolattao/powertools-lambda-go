@@ -11,7 +11,6 @@ import (
 	"github.com/alessandrolattao/powertools-lambda-go/internal/debug"
 	"github.com/alessandrolattao/powertools-lambda-go/internal/env"
 	"github.com/alessandrolattao/powertools-lambda-go/internal/output"
-	"github.com/alessandrolattao/powertools-lambda-go/metrics/internal/disabled"
 	"github.com/alessandrolattao/powertools-lambda-go/middleware"
 )
 
@@ -163,7 +162,7 @@ func New(opts ...Option) *Metrics {
 			service:   cfg.service,
 			out:       output.For(cfg.out),
 			now:       cfg.now,
-			disabled:  disabled.Is(),
+			disabled:  env.MetricsOff(),
 		}
 		m.provider = m.emf
 	}

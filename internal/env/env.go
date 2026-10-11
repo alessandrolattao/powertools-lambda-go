@@ -7,6 +7,7 @@
 package env
 
 import (
+	"context"
 	"os"
 	"strconv"
 	"strings"
@@ -149,7 +150,22 @@ func IsProvisioned() bool {
 	return Get(LambdaInitializationType) == "provisioned-concurrency"
 }
 
-// warnInvalid reports a variable whose value cannot be read, once.
+// MetricsOff reports whether metrics are switched off, with the rule
+// Powertools Python applies to every metrics provider:
+// POWERTOOLS_METRICS_DISABLED is true, or POWERTOOLS_DEV is on and
+// POWERTOOLS_METRICS_DISABLED is unset. Setting POWERTOOLS_METRICS_DISABLED
+// to false keeps metrics on in development mode.
+func MetricsOff() bool {
+	if Get(MetricsDisabled) != "" {
+		return Bool(MetricsDisabled, false)
+	}
+	return IsDev()
+}
+
+// warnInvalid reports a variable whose value cannot be read, once. The
+// warning belongs to the process, not to the invocation that happened to read
+// the variable first, so it carries no invocation context.
 func warnInvalid(name, raw string) {
-	warn.Once("env:"+name+"="+raw, "ignoring an invalid environment variable", "variable", name, "value", raw)
+	warn.Once(context.Background(), warn.UserWarning, "ignoring an invalid environment variable",
+		"variable", name, "value", raw)
 }

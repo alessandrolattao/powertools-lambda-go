@@ -569,7 +569,8 @@ func (b *Breaker) notify(ctx context.Context, from, to State, openedAt time.Time
 	b.cfg.onTransition(ctx, Transition{CircuitName: b.name, From: from, To: to, OpenedAt: openedAt})
 }
 
+// warnDisabled warns, once per process, that the breaker is switched off.
 func warnDisabled() {
-	warn.Once("circuitbreaker:disabled", "Disabling the circuit breaker is intended for development environments only "+
+	warn.Once(context.Background(), warn.UserWarning, "Disabling the circuit breaker is intended for development environments only "+
 		"and should not be used in production.")
 }

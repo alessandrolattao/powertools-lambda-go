@@ -144,7 +144,7 @@ func NewDynamoDBStore(client DynamoDBClient, table string, opts ...DynamoDBOptio
 			ErrInvalidConfig, s.keyAttr, s.sortKeyAttr)
 	}
 	if s.staticPKSet && s.sortKeyAttr == "" {
-		warn.Once("circuitbreaker:static_pk_value", "static_pk_value is ignored unless sort_key_attr is also set.")
+		warn.Once(context.Background(), warn.UserWarning, "static_pk_value is ignored unless sort_key_attr is also set.")
 	}
 	if !s.staticPKSet {
 		s.staticPKValue = "circuit_breaker#" + env.Get(env.LambdaFunctionName)

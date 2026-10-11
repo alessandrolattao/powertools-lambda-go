@@ -1,4 +1,4 @@
-package disabled
+package env
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIs(t *testing.T) { //nolint:paralleltest // it sets environment variables
+func TestMetricsOff(t *testing.T) { //nolint:paralleltest // it sets environment variables
 	tests := []struct {
 		disabled, dev string
 		want          bool
@@ -25,6 +25,6 @@ func TestIs(t *testing.T) { //nolint:paralleltest // it sets environment variabl
 	for _, tt := range tests {
 		t.Setenv("POWERTOOLS_METRICS_DISABLED", tt.disabled)
 		t.Setenv("POWERTOOLS_DEV", tt.dev)
-		assert.Equal(t, tt.want, Is(), "disabled=%q dev=%q", tt.disabled, tt.dev)
+		assert.Equal(t, tt.want, MetricsOff(), "disabled=%q dev=%q", tt.disabled, tt.dev)
 	}
 }

@@ -14,9 +14,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/alessandrolattao/powertools-lambda-go/internal/warn"
 	"github.com/alessandrolattao/powertools-lambda-go/metrics"
 	"github.com/alessandrolattao/powertools-lambda-go/metrics/internal/pyjson"
-	"github.com/alessandrolattao/powertools-lambda-go/metrics/internal/warn"
 )
 
 // Datadog's limits on names and tags.

@@ -260,6 +260,12 @@ linters:
   exclusions:
     generated: strict
     rules:
+      # Warnings about the process's configuration (an invalid environment
+      # variable, a utility disabled) belong to no invocation, whichever one
+      # happened to read the configuration first.
+      - linters:
+          - contextcheck
+        text: "warnInvalid|warnDisabled"
       - path: _test\.go
         linters:
           - dupl

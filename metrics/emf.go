@@ -13,8 +13,8 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/alessandrolattao/powertools-lambda-go/internal/warn"
 	"github.com/alessandrolattao/powertools-lambda-go/metrics/internal/pyjson"
-	"github.com/alessandrolattao/powertools-lambda-go/metrics/internal/warn"
 )
 
 // The window CloudWatch accepts metric timestamps in.

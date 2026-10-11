@@ -10,7 +10,6 @@ import (
 	"github.com/alessandrolattao/powertools-lambda-go/internal/env"
 	"github.com/alessandrolattao/powertools-lambda-go/internal/output"
 	"github.com/alessandrolattao/powertools-lambda-go/metrics"
-	"github.com/alessandrolattao/powertools-lambda-go/metrics/internal/disabled"
 )
 
 // DefaultNamespace is the namespace of metrics whose names Datadog receives
@@ -104,7 +103,7 @@ func newConfig(opts []Option) *config {
 		p.namespace = DefaultNamespace
 	}
 	p.out = output.For(p.out)
-	p.disabled = disabled.Is()
+	p.disabled = env.MetricsOff()
 	if _, err := os.Stat(extensionPath); err == nil {
 		p.statsd = extensionStatsd
 	}
