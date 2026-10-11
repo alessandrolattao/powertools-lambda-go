@@ -508,6 +508,15 @@ functions, each package exports the function that registers its routes, so
 that a build step can merge their OpenAPI documents
 (see [OpenAPI merge](eventhandler-openapi.md#openapi-merge)).
 
+Typed operations pay their reflection at registration, during the cold start:
+about 0.3 ms per operation once warm, 1 to 1.5 ms for the first ones (one
+vCPU, that is 1,769 MB; proportionally more on smaller functions). In
+exchange, a struct tag that does not make sense stops the function as it
+starts, never on a request. Plain `http.Handler` routes cost nothing to
+register. The package itself initializes in about 1 ms: its validator is
+built in, and only `eventhandler/schemavalidation` links the full JSON Schema
+library that package `validation` uses.
+
 ## Testing your code
 
 Routers are `http.Handler`s: test them with `net/http/httptest`.

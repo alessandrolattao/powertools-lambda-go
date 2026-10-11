@@ -171,7 +171,12 @@ them the same way.
 - **Warnings** (Python's `warnings` module) are JSON records at `WARN` on
   standard error, once per cause.
 - **Libraries.** JMESPath: `github.com/jmespath-community/go-jmespath`.
-  JSON Schema: `github.com/santhosh-tekuri/jsonschema/v6`. Avro:
+  JSON Schema: `github.com/santhosh-tekuri/jsonschema/v6` for package
+  `validation` (any schema, any draft); the Event Handler's typed operations
+  validate with a built-in validator of the subset their schemas use,
+  because that library compiles every draft's meta-schema at package init
+  (8 ms, about 100 ms of cold start at 128 MB), and fuzzing proves the two
+  agree. Avro:
   `github.com/twmb/avro` (`hamba/avro` is archived). Protobuf:
   `google.golang.org/protobuf`. JWT: `github.com/lestrrat-go/jwx/v4`, with
   our own JWKS cache (Powertools never serves keys whose refresh failed).
