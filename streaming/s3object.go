@@ -434,6 +434,11 @@ func (o *S3Object) ReadAt(p []byte, off int64) (int, error) {
 		return n, nil
 	case errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF):
 		_ = o.at.close() //nolint:errcheck // the stream is spent; closing only releases the connection
+		if o.sized && o.at.pos < o.size {
+			// The body ended before the object did: the connection was cut,
+			// and a clean EOF would hand the caller truncated data.
+			return n, fmt.Errorf("streaming: read %s: body ended at %d of %d bytes: %w", o.path(), o.at.pos, o.size, io.ErrUnexpectedEOF)
+		}
 		return n, io.EOF
 	default:
 		_ = o.at.close() //nolint:errcheck // the read error is what the caller needs

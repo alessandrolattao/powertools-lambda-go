@@ -318,15 +318,18 @@ func callOpen[T any](ctx context.Context, b *Breaker, record *Record, fn func(co
 func callHalfOpen[T any](ctx context.Context, b *Breaker, record *Record, fn func(context.Context) (T, error),
 	onOpen func(context.Context, CircuitInfo) (T, error),
 ) (T, error) {
-	if record.HalfOpenOwner == b.owner {
+	now := b.clock()
+	leased := record.ProbeLeaseExpiry.IsZero() || now.Before(record.ProbeLeaseExpiry)
+	if record.HalfOpenOwner == b.owner && leased {
 		if !b.probing.CompareAndSwap(false, true) {
 			// Another call of this breaker is probing: one at a time.
 			return reject(ctx, record, onOpen)
 		}
 		return probe(ctx, b, fn)
 	}
-	now := b.clock()
-	if record.ProbeLeaseExpiry.IsZero() || now.Before(record.ProbeLeaseExpiry) {
+	// A prober whose lease ended, this breaker included, must win the probe
+	// again: another environment may have taken it over meanwhile.
+	if leased {
 		return reject(ctx, record, onOpen)
 	}
 	// The prober's lease ended before it finished (its environment went
@@ -370,6 +373,12 @@ func (b *Breaker) elect(ctx context.Context, openedAt, now time.Time) (bool, err
 		b.probing.Store(false)
 		return false, nil
 	}
+	// A won election starts a probe streak of its own: successes counted
+	// under an earlier lease, which another environment may have ended by
+	// reopening the circuit, must not close it early.
+	b.mu.Lock()
+	b.successes = 0
+	b.mu.Unlock()
 	b.cache(record)
 	return true, nil
 }

@@ -613,3 +613,57 @@ func TestDisabled(t *testing.T) {
 	gets, puts, acquires, updates := h.store.calls()
 	assert.Zero(t, gets+puts+acquires+updates, "the store is never touched")
 }
+
+func TestAnElectionStartsAFreshProbeStreak(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, cb.WithSuccessThreshold(3))
+	other := h.add(t, cb.WithSuccessThreshold(3))
+	ctx := t.Context()
+	h.trip(t)
+
+	// The first environment wins the probe and counts two successes.
+	h.clock.Advance(10 * time.Second)
+	for range 2 {
+		_, err := h.breaker.Call(ctx, succeed)
+		require.NoError(t, err)
+	}
+	assert.Equal(t, cb.HalfOpen, h.store.record("payments").State)
+
+	// Its lease ends; the other environment takes the probe over and fails.
+	h.clock.Advance(10 * time.Second)
+	_, err := other.Call(ctx, fail)
+	require.ErrorIs(t, err, errDown)
+	assert.Equal(t, cb.Open, h.store.record("payments").State)
+
+	// The first one wins a new election: its old successes do not count.
+	h.clock.Advance(10 * time.Second)
+	_, err = h.breaker.Call(ctx, succeed)
+	require.NoError(t, err)
+	assert.Equal(t, cb.HalfOpen, h.store.record("payments").State, "one success of three closes nothing")
+}
+
+func TestAProberWhoseLeaseEndedMustWinAgain(t *testing.T) {
+	t.Parallel()
+	// The first environment keeps the record of its election in its local
+	// cache, as a real one does between reads.
+	h := newHarness(t, cb.WithSuccessThreshold(3), cb.WithLocalCacheMaxAge(time.Hour))
+	other := h.add(t, cb.WithSuccessThreshold(3))
+	ctx := t.Context()
+	h.trip(t)
+
+	h.clock.Advance(10 * time.Second)
+	_, err := h.breaker.Call(ctx, succeed)
+	require.NoError(t, err)
+
+	// The lease ends and the other environment takes over...
+	h.clock.Advance(10 * time.Second)
+	_, err = other.Call(ctx, succeed)
+	require.NoError(t, err)
+	require.Equal(t, cb.Owner(other), h.store.record("payments").HalfOpenOwner)
+
+	// ...so the first one, still believing it probes, is turned away.
+	_, err = h.breaker.Call(ctx, succeed)
+	openErr, ok := errors.AsType[*cb.OpenError](err)
+	require.True(t, ok, "the former prober waits like anyone else: %v", err)
+	assert.Equal(t, cb.HalfOpen, openErr.Circuit.State)
+}
