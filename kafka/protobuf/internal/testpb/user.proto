@@ -1,0 +1,15 @@
+// The messages of the Powertools Python Kafka examples and tests.
+syntax = "proto3";
+
+package com.example;
+
+option go_package = "github.com/alessandrolattao/powertools-lambda-go/kafka/protobuf/internal/testpb";
+
+message User {
+  string name = 1;
+  int32 age = 2;
+}
+
+message Key {
+  string user_id = 3;
+}

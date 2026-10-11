@@ -1,0 +1,27 @@
+// The schema of the Glue and Confluent sample events of the Powertools
+// Python Kafka tests.
+syntax = "proto3";
+
+package com.example.protobuf;
+
+option go_package = "github.com/alessandrolattao/powertools-lambda-go/kafka/protobuf/internal/testpb";
+
+message Address {
+  string street = 1;
+  string city = 2;
+  string zip = 3;
+}
+
+message UserProfile {
+  string userId = 1;
+  string name = 2;
+  string email = 3;
+  int32 age = 4;
+  bool isActive = 5;
+  string signupDate = 6;
+  repeated string tags = 7;
+  double score = 8;
+  map<string, string> preferences = 9;
+  Address address = 10;
+  int64 visits = 11;
+}
