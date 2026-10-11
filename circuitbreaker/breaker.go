@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"log/slog"
 	"os"
 	"strconv"
 	"sync"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/alessandrolattao/powertools-lambda-go/internal/debug"
 	"github.com/alessandrolattao/powertools-lambda-go/internal/env"
+	"github.com/alessandrolattao/powertools-lambda-go/internal/warn"
 )
 
 // The defaults of Powertools Python's CircuitBreakerConfig.
@@ -569,12 +569,7 @@ func (b *Breaker) notify(ctx context.Context, from, to State, openedAt time.Time
 	b.cfg.onTransition(ctx, Transition{CircuitName: b.name, From: from, To: to, OpenedAt: openedAt})
 }
 
-// stderr is where the warnings Powertools Python raises as warnings go.
-var stderr = sync.OnceValue(func() *slog.Logger {
-	return slog.New(slog.NewJSONHandler(os.Stderr, nil))
-})
-
-var warnDisabled = sync.OnceFunc(func() {
-	stderr().Warn("Disabling the circuit breaker is intended for development environments only " +
+func warnDisabled() {
+	warn.Once("circuitbreaker:disabled", "Disabling the circuit breaker is intended for development environments only "+
 		"and should not be used in production.")
-})
+}

@@ -7,11 +7,12 @@
 package env
 
 import (
-	"log/slog"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/alessandrolattao/powertools-lambda-go/internal/warn"
 )
 
 // The variables every utility reads.
@@ -148,9 +149,7 @@ func IsProvisioned() bool {
 	return Get(LambdaInitializationType) == "provisioned-concurrency"
 }
 
-// warnInvalid reports a variable whose value cannot be read. It goes to
-// standard error, where Lambda collects it, as a JSON record.
+// warnInvalid reports a variable whose value cannot be read, once.
 func warnInvalid(name, raw string) {
-	slog.New(slog.NewJSONHandler(os.Stderr, nil)).Warn("powertools: ignoring an invalid environment variable",
-		"variable", name, "value", raw)
+	warn.Once("env:"+name+"="+raw, "ignoring an invalid environment variable", "variable", name, "value", raw)
 }
