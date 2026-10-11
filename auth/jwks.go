@@ -211,7 +211,22 @@ func (c *jwksCache) next(kid string, wantKID, joined bool) (step, *keySet, *flig
 // keys the provider removed disappear. A failure backs off and leaves the
 // old keys to expire: they are never served past their maximum age.
 func (c *jwksCache) refresh(parent, ctx context.Context, f *flight, previousUnknown time.Time) (*keySet, error) {
+	settled := false
+	defer func() {
+		if settled {
+			return
+		}
+		// fetch panicked (the caller's HTTP transport): end the flight, so
+		// that the verifiers waiting on it and the next refresh go on, then
+		// let the panic go on.
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		c.flight = nil
+		f.abandoned = true
+		close(f.done)
+	}()
 	keys, err := c.fetch(ctx)
+	settled = true
 	if err == nil && ctx.Err() != nil {
 		err = context.Cause(ctx)
 	}

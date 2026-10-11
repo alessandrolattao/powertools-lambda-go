@@ -350,7 +350,22 @@ type exchange struct {
 
 // run performs the exchange as its owner and publishes the outcome.
 func (c *Client) run(parent, budget context.Context, f *exchange) {
+	settled := false
+	defer func() {
+		if settled {
+			return
+		}
+		// acquire panicked (the caller's SecretSource or transport): release
+		// the callers waiting on this exchange with a failure, so that the
+		// client does not wait on it forever, then let the panic go on.
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		c.flight = nil
+		f.err = errTokenExchange(false)
+		close(f.done)
+	}()
 	token, err := c.acquire(budget)
+	settled = true
 	c.mu.Lock()
 	defer func() {
 		c.flight = nil

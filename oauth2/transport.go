@@ -22,7 +22,10 @@ import (
 // Responses come back whatever their status: a 401 does not discard the
 // cached token, and nothing is replayed. A transport failure matches
 // ErrDownstreamRequest. Send it only to the resource the token is for: the
-// destination is not checked against the audience or the resource.
+// destination is not checked against the audience or the resource. An
+// http.Client built around it must refuse redirects (CheckRedirect
+// returning http.ErrUseLastResponse), or a redirect would carry the token
+// to another host; HTTPClient does.
 func (c *Client) Transport(base http.RoundTripper) http.RoundTripper {
 	if base == nil {
 		base = c.transport
