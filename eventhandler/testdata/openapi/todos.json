@@ -1,0 +1,532 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "contact": {
+      "email": "team@example.com",
+      "name": "Team",
+      "url": "https://example.com"
+    },
+    "description": "An API to **manage** todos.",
+    "license": {
+      "identifier": "MIT",
+      "name": "MIT"
+    },
+    "summary": "Manage todos",
+    "termsOfService": "https://example.com/terms",
+    "title": "Todos API",
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "description": "Environments",
+      "url": "https://{env}.example.com",
+      "variables": {
+        "env": {
+          "default": "dev",
+          "enum": [
+            "dev",
+            "prod"
+          ]
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/files/{path}": {
+      "get": {
+        "operationId": "files__path__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {}
+        ],
+        "summary": "GET /files/{path}"
+      }
+    },
+    "/hello/{name}": {
+      "get": {
+        "operationId": "hello__name__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "GET /hello/{name}"
+      }
+    },
+    "/todos": {
+      "get": {
+        "operationId": "todos_get",
+        "parameters": [
+          {
+            "description": "Page size",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 10,
+              "description": "Page size",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "completed",
+            "schema": {
+              "type": [
+                "null",
+                "boolean"
+              ]
+            }
+          },
+          {
+            "deprecated": true,
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "deprecated": true,
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "session",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Trace-Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Todo"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List todos",
+        "tags": [
+          "todos"
+        ]
+      },
+      "post": {
+        "operationId": "todos_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Todo"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseValidationError"
+                }
+              }
+            },
+            "description": "Response Validation Error"
+          }
+        },
+        "security": [
+          {
+            "oauth": [
+              "todos:write"
+            ]
+          }
+        ],
+        "summary": "POST /todos",
+        "tags": [
+          "todos"
+        ],
+        "x-internal": true
+      }
+    },
+    "/todos/{id}": {
+      "delete": {
+        "deprecated": true,
+        "operationId": "todos__id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "DELETE /todos/{id}"
+      },
+      "get": {
+        "description": "Get one todo",
+        "operationId": "getTodo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            },
+            "description": "The todo"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "No such todo"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "GET /todos/{id}",
+        "tags": [
+          "todos"
+        ]
+      }
+    },
+    "/upload": {
+      "post": {
+        "operationId": "upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/FormDataUploadInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "POST /upload"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorBody": {
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "FormDataUploadInput": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "format": "binary",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "file"
+        ],
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          },
+          "statusCode": {
+            "title": "Status Code",
+            "type": "integer"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ResponseValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          },
+          "statusCode": {
+            "title": "Status Code",
+            "type": "integer"
+          }
+        },
+        "title": "ResponseValidationError",
+        "type": "object"
+      },
+      "Todo": {
+        "properties": {
+          "completed": {
+            "type": "boolean"
+          },
+          "due": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "description": "The todo id",
+            "type": "integer"
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "title": {
+            "examples": [
+              "Buy milk"
+            ],
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ],
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "apiKey": {
+        "in": "header",
+        "name": "X-Api-Key",
+        "type": "apiKey"
+      },
+      "basic": {
+        "scheme": "basic",
+        "type": "http"
+      },
+      "bearer": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "mtls": {
+        "type": "mutualTLS"
+      },
+      "oauth": {
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.example.com/authorize",
+            "scopes": {
+              "todos:write": "Write todos"
+            },
+            "tokenUrl": "https://auth.example.com/token"
+          }
+        },
+        "type": "oauth2"
+      },
+      "oidc": {
+        "openIdConnectUrl": "https://auth.example.com/.well-known/openid-configuration",
+        "type": "openIdConnect"
+      }
+    }
+  },
+  "security": [
+    {
+      "apiKey": []
+    }
+  ],
+  "tags": [
+    {
+      "description": "Todo items",
+      "externalDocs": {
+        "url": "https://example.com/todos"
+      },
+      "name": "todos"
+    }
+  ],
+  "externalDocs": {
+    "description": "Guide",
+    "url": "https://example.com/docs"
+  },
+  "x-owner": "team"
+}
