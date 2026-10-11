@@ -5,6 +5,7 @@ go 1.27.0
 require (
 	github.com/aws/aws-lambda-go v1.55.1
 	github.com/jmespath-community/go-jmespath v1.1.1
+	github.com/ohler55/ojg v1.28.7
 	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/otel v1.47.0
 	go.opentelemetry.io/otel/sdk v1.47.0
