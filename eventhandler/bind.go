@@ -250,7 +250,10 @@ func (o *operation[In, Out]) bind(ctx context.Context, req *http.Request, st *re
 	for _, f := range o.plan.params {
 		b.bindParam(f)
 	}
-	jsonBody, hasJSON := b.bindBody(o.plan)
+	jsonBody, hasJSON, err := b.bindBody(o.plan)
+	if err != nil {
+		return in, err
+	}
 	v, err := o.validators()
 	if err != nil {
 		return in, err
@@ -538,37 +541,44 @@ func coerceFloat(raw string, v reflect.Value) (value reflect.Value, instance any
 
 // bindBody checks the JSON body and puts it in the validation instance. It
 // returns the body to decode once validation passes.
-func (b *binding) bindBody(plan *inputPlan) ([]byte, bool) {
+func (b *binding) bindBody(plan *inputPlan) (data []byte, decode bool, err error) {
 	body := plan.body
 	if body == nil {
-		return nil, false
+		return nil, false, nil
 	}
 	if body.raw {
 		b.value.FieldByIndex(body.index).SetBytes(b.body)
-		return nil, false
+		return nil, false, nil
 	}
 	if len(bytes.TrimSpace(b.body)) == 0 {
 		if body.required {
 			b.failBody(errTypeMissing, "Field required")
 		}
-		return nil, false
+		return nil, false, nil
 	}
+	// A body that is not JSON is the only error reported, as in Python,
+	// which gives up on the request at that point.
 	var syntax jsontext.Value
-	if err := json.Unmarshal(b.body, &syntax); err != nil {
+	if err = json.Unmarshal(b.body, &syntax); err != nil {
 		var offset int64
 		if se, ok := errors.AsType[*jsontext.SyntacticError](err); ok {
 			offset = se.ByteOffset
 		}
-		b.failBody("json_invalid", "JSON decode error: "+err.Error(), offset)
-		return nil, false
+		return nil, false, jsonInvalid(b.body, err, offset)
 	}
-	instance, err := decodeInstance(b.body)
-	if err != nil {
-		b.failBody("json_invalid", "JSON decode error: "+err.Error())
-		return nil, false
+	instance, derr := decodeInstance(b.body)
+	if derr != nil {
+		return nil, false, jsonInvalid(b.body, derr)
 	}
 	b.instance[inBody] = instance
-	return b.body, true
+	return b.body, true, nil
+}
+
+func jsonInvalid(body []byte, err error, where ...any) error {
+	return &RequestValidationError{
+		Errors: []ValidationErrorDetail{{Loc: append([]any{inBody}, where...), Type: "json_invalid", Msg: "JSON decode error: " + err.Error()}},
+		Body:   body,
+	}
 }
 
 // decodeBody decodes the validated body into the Body field.

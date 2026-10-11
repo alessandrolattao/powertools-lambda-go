@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 
 	jsv "github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/santhosh-tekuri/jsonschema/v6/kind"
@@ -221,13 +222,14 @@ func (o *operation[In, Out]) validateResponse(req *http.Request, st *requestStat
 	return &ResponseValidationError{Errors: details, StatusCode: status, Body: body}
 }
 
-var printer = message.NewPrinter(language.English)
+// printer writes the messages of validation errors, for logs.
+var printer = sync.OnceValue(func() *message.Printer { return message.NewPrinter(language.English) })
 
 // collectErrors turns the engine's error tree into Pydantic-like details.
 func collectErrors(ve *jsv.ValidationError, instance any, prefix []any, out *[]ValidationErrorDetail) {
 	loc := append(slices.Clone(prefix), instanceLoc(instance, ve.InstanceLocation)...)
 	add := func(typ string) {
-		*out = append(*out, ValidationErrorDetail{Loc: loc, Type: typ, Msg: ve.ErrorKind.LocalizedString(printer)})
+		*out = append(*out, ValidationErrorDetail{Loc: loc, Type: typ, Msg: ve.ErrorKind.LocalizedString(printer())})
 	}
 	switch k := ve.ErrorKind.(type) {
 	case *kind.Required:

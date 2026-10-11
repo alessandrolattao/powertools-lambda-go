@@ -182,13 +182,13 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	rt, values := r.match(req.Method, escaped, decoded, trailing)
 
 	st := &requestState{router: r, route: rt}
-	routed := req.WithContext(context.WithValue(req.Context(), stateKey{}, st))
-	u := *req.URL
-	u.Path, u.RawPath = decoded, ""
-	if escaped != u.EscapedPath() {
-		u.RawPath = escaped
+	// A clone, so that the path values set here never reach the request of
+	// an enclosing mux.
+	routed := req.Clone(context.WithValue(req.Context(), stateKey{}, st))
+	routed.URL.Path, routed.URL.RawPath = decoded, ""
+	if escaped != routed.URL.EscapedPath() {
+		routed.URL.RawPath = escaped
 	}
-	routed.URL = &u
 	for _, name := range slices.Sorted(maps.Keys(values)) {
 		routed.SetPathValue(name, values[name])
 	}

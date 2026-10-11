@@ -493,3 +493,17 @@ func TestBodyErrorTypes(t *testing.T) {
 	rec = do(t, app, "POST", "/p", `{"address":null,"seen":"2024-01-02T03:04:05Z"}`)
 	assert.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
 }
+
+func TestInvalidJSONIsTheOnlyError(t *testing.T) {
+	t.Parallel()
+	app := New()
+	Post(app, "/x/{id}", func(context.Context, struct {
+		ID   int `path:"id"`
+		Body todo
+	},
+	) (bool, error) {
+		return true, nil
+	})
+	pythonBody(t, `{"statusCode":422,"detail":[{"loc":["body",1],"type":"json_invalid"}]}`,
+		do(t, app, "POST", "/x/abc", "{]").Body.String())
+}
