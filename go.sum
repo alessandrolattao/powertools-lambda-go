@@ -2,6 +2,18 @@ github.com/alicebob/miniredis/v2 v2.40.0 h1:6IgTQbvm2JiMYZ8yur/acNJzVjtSOWCelxXb
 github.com/alicebob/miniredis/v2 v2.40.0/go.mod h1:TcL7YfarKPGDAthEtl5NBeHZfeUQj6OXMm/+iu5cLMM=
 github.com/aws-observability/aws-otel-go/exporters/xrayudp v1.0.0 h1:7KBZ503nBhE92gD6qKb+EGqxGgkL3PIKWu8itDRXRzg=
 github.com/aws-observability/aws-otel-go/exporters/xrayudp v1.0.0/go.mod h1:fSUUeQ+AJzro45Zhl6wr5+5gVWxovidCMZzzswqvJG8=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/dynamodb v0.4.0 h1:lxwCjvLeONKupOzyM4nZ9Howm2L+YZAUGEnyqbXJRf0=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/dynamodb v0.4.0/go.mod h1:PXsNVTdhKRVmI90Z85x8eW4sdw4jm5mfwfzvXLJ7iro=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/kms v0.4.0 h1:GjuO0CzMbgv6vc2ES1Gqg/wb/Kq+8QSbVBDoNF8DTHU=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/kms v0.4.0/go.mod h1:EvYxYyU+uLAUrv8B/a3jQZxCJWQsEy1oV/GsYtbVydw=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/mpl v0.4.0 h1:t4gDXLLUJsSYtvK45JjsmG17dQuLGd5r8pxAqVLaYCA=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/mpl v0.4.0/go.mod h1:3qZEmqL19CTQmvekW4LYVNXF2sQGfzpmdM4q1B+uZzw=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/primitives v0.4.0 h1:W+aaZdD7yc0EnQy7ewDsAS/q/5bbKQPdlmoyqa+Oobo=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/primitives v0.4.0/go.mod h1:C08SqzIpkQw8e/gU/6u5VWhrxIpIGRgjcNKGSSYzsUQ=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/smithy-dafny-standard-library v0.4.0 h1:ScL4xMrZHTpPHk10i+KhhBqqPu0gLejpPhCyii62YiI=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/smithy-dafny-standard-library v0.4.0/go.mod h1:F6OtrAEc+C0qU8HlTBuXl4rMdgFA2oygwTqWkGyM2QQ=
+github.com/aws/aws-encryption-sdk/releases/go/encryption-sdk v0.4.0 h1:T1ZJp+qgXgO40MpfRrrbPgfjabdNuAnR73+SFtlMwrY=
+github.com/aws/aws-encryption-sdk/releases/go/encryption-sdk v0.4.0/go.mod h1:6hHqmIGsk7YNanqDcVonh9gb78YOjh9gaWiy5OGl74E=
 github.com/aws/aws-lambda-go v1.55.1 h1:We2cCp4BwqqH/JW+bEEo1FhgG71rslvjfi4y7KmlrR0=
 github.com/aws/aws-lambda-go v1.55.1/go.mod h1:V+NzkHNR6vBC8C1PDloqSLE+7jYWFiPvJJFiCiTm8nE=
 github.com/aws/aws-sdk-go-v2 v1.47.3 h1:HRoT/MkNi3bjO5xF4dCzLzvVmkvRGHj3/cLINDnJejk=
@@ -32,6 +44,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.14.6 h1:LHHdobjo5
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.14.6/go.mod h1:CBGB0evAiaMD3Lk4wPO7LQCcCZLuhzL5Qf/wfEUHQ5w=
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.20.6 h1:mYViDr2azcgxOpRrObZOl631bvavqILoE/L+Kxgbwys=
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.20.6/go.mod h1:OXVdAo9jNhggB+hJRGOyy7WolGTKB6Rg7IIulDeSzPM=
+github.com/aws/aws-sdk-go-v2/service/kms v1.61.4 h1:vW7497x7W6ucLJAqDt96jIdO4+IWLMB3p98UubwjdqM=
+github.com/aws/aws-sdk-go-v2/service/kms v1.61.4/go.mod h1:Vz59N7x42VGLXZ5dGL9b10QhrU4GQv7MqnO7wc8bl9U=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.114.3 h1:NyeuyXkZL476uoAowNActm4XJO1QPKf7aassgXHpiqA=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.114.3/go.mod h1:GfoBeKMDJecgRUsGf/0RGdx0NJAh81ObTd922h8pQys=
 github.com/aws/aws-sdk-go-v2/service/signin v1.10.4 h1:tvpDjuUvgKURf3Yk4hOaGbZ4QdY+070OWcA5d6LUv2A=
@@ -54,6 +68,8 @@ github.com/cenkalti/backoff/v5 v5.0.3 h1:ZN+IMa753KfX5hd8vVaMixjnqRZ3y8CuJKRKj1x
 github.com/cenkalti/backoff/v5 v5.0.3/go.mod h1:rkhZdG3JZukswDf7f0cwqPNk4K0sa+F97BxZthm/crw=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
+github.com/dafny-lang/DafnyRuntimeGo/v4 v4.11.3 h1:c6YsrliEnawqCWrk+edyi3w9mfxtVmkvP+eSBBgpnSQ=
+github.com/dafny-lang/DafnyRuntimeGo/v4 v4.11.3/go.mod h1:l2Tm4N2DKuq3ljONC2vOATeM9PUpXbIc8SgXdwwqEto=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1 h1:5RVFMOWjMyRy8cARdy79nAmgYw3hK/4HUq48LQ6Wwqo=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1/go.mod h1:ZXNYxsqcloTdSy/rNShjYzMhyjf0LaoftYK0p+A3h40=
 github.com/dlclark/regexp2 v1.11.0 h1:G/nrcoOa7ZXlpoa/91N3X7mM3r8eIlMBBJZvsz/mxKI=
@@ -89,6 +105,8 @@ github.com/lestrrat-go/jwx/v4 v4.5.0 h1:lgU8YcqaJo/iZllX4AvSaQTzT2XpWWMrDcPMe6+K
 github.com/lestrrat-go/jwx/v4 v4.5.0/go.mod h1:HpoztFC5HrNj9iKkZJ3XTQQgzCY2Zto/29n89QhTC10=
 github.com/lestrrat-go/option/v3 v3.0.0-alpha1 h1:dvdzLwm/Ba5CJUF3jQP7w/iNYSLfy7yyh9XXNa1WjxI=
 github.com/lestrrat-go/option/v3 v3.0.0-alpha1/go.mod h1:5KSg20dfsKkNJtjDmaQRLZVXuUrzuCCcz/gbDK0pfKk=
+github.com/ohler55/ojg v1.28.7 h1:ZfEYbtiPas8fHzBf+e9bDv+RDKEczfNsXa9Qg38ynio=
+github.com/ohler55/ojg v1.28.7/go.mod h1:/Y5dGWkekv9ocnUixuETqiL58f+5pAsUfg5P8e7Pa2o=
 github.com/redis/go-redis/v9 v9.23.0 h1:/TTVdJa8BRNsybwwGGnmiYktHNlUXtbOQxlWpHBPL3s=
 github.com/redis/go-redis/v9 v9.23.0/go.mod h1:EWP2UUk+XDaI1s5nQB5mablZN6vccXlmBQTyfnF87D0=
 github.com/santhosh-tekuri/jsonschema/v6 v6.0.3 h1:1EYB5IzjZawrrnELUi78f9fPu57HuXjmddZPjrls/28=

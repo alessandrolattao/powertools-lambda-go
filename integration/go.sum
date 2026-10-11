@@ -10,8 +10,20 @@ github.com/alicebob/miniredis/v2 v2.40.0 h1:6IgTQbvm2JiMYZ8yur/acNJzVjtSOWCelxXb
 github.com/alicebob/miniredis/v2 v2.40.0/go.mod h1:TcL7YfarKPGDAthEtl5NBeHZfeUQj6OXMm/+iu5cLMM=
 github.com/aws-observability/aws-otel-go/exporters/xrayudp v1.0.0 h1:7KBZ503nBhE92gD6qKb+EGqxGgkL3PIKWu8itDRXRzg=
 github.com/aws-observability/aws-otel-go/exporters/xrayudp v1.0.0/go.mod h1:fSUUeQ+AJzro45Zhl6wr5+5gVWxovidCMZzzswqvJG8=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/dynamodb v0.4.0 h1:lxwCjvLeONKupOzyM4nZ9Howm2L+YZAUGEnyqbXJRf0=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/dynamodb v0.4.0/go.mod h1:PXsNVTdhKRVmI90Z85x8eW4sdw4jm5mfwfzvXLJ7iro=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/kms v0.4.0 h1:GjuO0CzMbgv6vc2ES1Gqg/wb/Kq+8QSbVBDoNF8DTHU=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/kms v0.4.0/go.mod h1:EvYxYyU+uLAUrv8B/a3jQZxCJWQsEy1oV/GsYtbVydw=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/mpl v0.4.0 h1:t4gDXLLUJsSYtvK45JjsmG17dQuLGd5r8pxAqVLaYCA=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/mpl v0.4.0/go.mod h1:3qZEmqL19CTQmvekW4LYVNXF2sQGfzpmdM4q1B+uZzw=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/primitives v0.4.0 h1:W+aaZdD7yc0EnQy7ewDsAS/q/5bbKQPdlmoyqa+Oobo=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/primitives v0.4.0/go.mod h1:C08SqzIpkQw8e/gU/6u5VWhrxIpIGRgjcNKGSSYzsUQ=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/smithy-dafny-standard-library v0.4.0 h1:ScL4xMrZHTpPHk10i+KhhBqqPu0gLejpPhCyii62YiI=
+github.com/aws/aws-cryptographic-material-providers-library/releases/go/smithy-dafny-standard-library v0.4.0/go.mod h1:F6OtrAEc+C0qU8HlTBuXl4rMdgFA2oygwTqWkGyM2QQ=
 github.com/aws/aws-durable-execution-sdk-go v0.0.0-20261009222724-6c41cfb70adb h1:Ed6HHcBMSb0M3BjOGS+xeEhGtK9IwkPkBD/DwI2HDOw=
 github.com/aws/aws-durable-execution-sdk-go v0.0.0-20261009222724-6c41cfb70adb/go.mod h1:KLcTFG0uRH4ogxucR50rsvQNKSbVI15uue1Z6ATbe/s=
+github.com/aws/aws-encryption-sdk/releases/go/encryption-sdk v0.4.0 h1:T1ZJp+qgXgO40MpfRrrbPgfjabdNuAnR73+SFtlMwrY=
+github.com/aws/aws-encryption-sdk/releases/go/encryption-sdk v0.4.0/go.mod h1:6hHqmIGsk7YNanqDcVonh9gb78YOjh9gaWiy5OGl74E=
 github.com/aws/aws-lambda-go v1.55.1 h1:We2cCp4BwqqH/JW+bEEo1FhgG71rslvjfi4y7KmlrR0=
 github.com/aws/aws-lambda-go v1.55.1/go.mod h1:V+NzkHNR6vBC8C1PDloqSLE+7jYWFiPvJJFiCiTm8nE=
 github.com/aws/aws-sdk-go-v2 v1.47.3 h1:HRoT/MkNi3bjO5xF4dCzLzvVmkvRGHj3/cLINDnJejk=
@@ -44,6 +56,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.14.6 h1:LHHdobjo5
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.14.6/go.mod h1:CBGB0evAiaMD3Lk4wPO7LQCcCZLuhzL5Qf/wfEUHQ5w=
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.20.6 h1:mYViDr2azcgxOpRrObZOl631bvavqILoE/L+Kxgbwys=
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.20.6/go.mod h1:OXVdAo9jNhggB+hJRGOyy7WolGTKB6Rg7IIulDeSzPM=
+github.com/aws/aws-sdk-go-v2/service/kms v1.61.4 h1:vW7497x7W6ucLJAqDt96jIdO4+IWLMB3p98UubwjdqM=
+github.com/aws/aws-sdk-go-v2/service/kms v1.61.4/go.mod h1:Vz59N7x42VGLXZ5dGL9b10QhrU4GQv7MqnO7wc8bl9U=
 github.com/aws/aws-sdk-go-v2/service/lambda v1.99.0 h1:F5jW/w63W6/2/rwqhc1QzqiRYXb4PnKuMbrN1CqRrsQ=
 github.com/aws/aws-sdk-go-v2/service/lambda v1.99.0/go.mod h1:gKWVtxlMTgoLU9m6FDw7z6FAEFh8u8CoaPJx0zWk5J8=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.114.3 h1:NyeuyXkZL476uoAowNActm4XJO1QPKf7aassgXHpiqA=
@@ -88,6 +102,8 @@ github.com/cpuguy83/dockercfg v0.3.2 h1:DlJTyZGBDlXqUZ2Dk2Q3xHs/FtnooJJVaad2S9GK
 github.com/cpuguy83/dockercfg v0.3.2/go.mod h1:sugsbF4//dDlL/i+S+rtpIWp+5h0BHJHfjj5/jFyUJc=
 github.com/creack/pty v1.1.24 h1:bJrF4RRfyJnbTJqzRLHzcGaZK1NeM5kTC9jGgovnR1s=
 github.com/creack/pty v1.1.24/go.mod h1:08sCNb52WyoAwi2QDyzUCTgcvVFhUzewun7wtTfvcwE=
+github.com/dafny-lang/DafnyRuntimeGo/v4 v4.11.3 h1:c6YsrliEnawqCWrk+edyi3w9mfxtVmkvP+eSBBgpnSQ=
+github.com/dafny-lang/DafnyRuntimeGo/v4 v4.11.3/go.mod h1:l2Tm4N2DKuq3ljONC2vOATeM9PUpXbIc8SgXdwwqEto=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1 h1:5RVFMOWjMyRy8cARdy79nAmgYw3hK/4HUq48LQ6Wwqo=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1/go.mod h1:ZXNYxsqcloTdSy/rNShjYzMhyjf0LaoftYK0p+A3h40=
 github.com/distribution/reference v0.6.0 h1:0IXCQ5g4/QMHHkarYzh5l+u8T3t73zM5QvfrDyIgxBk=
@@ -158,6 +174,8 @@ github.com/moby/sys/userns v0.1.0 h1:tVLXkFOxVu9A64/yh59slHVv9ahO9UIev4JZusOLG/g
 github.com/moby/sys/userns v0.1.0/go.mod h1:IHUYgu/kao6N8YZlp9Cf444ySSvCmDlmzUcYfDHOl28=
 github.com/moby/term v0.5.2 h1:6qk3FJAFDs6i/q3W/pQ97SX192qKfZgGjCQqfCJkgzQ=
 github.com/moby/term v0.5.2/go.mod h1:d3djjFCrjnB+fl8NJux+EJzu0msscUP+f8it8hPkFLc=
+github.com/ohler55/ojg v1.28.7 h1:ZfEYbtiPas8fHzBf+e9bDv+RDKEczfNsXa9Qg38ynio=
+github.com/ohler55/ojg v1.28.7/go.mod h1:/Y5dGWkekv9ocnUixuETqiL58f+5pAsUfg5P8e7Pa2o=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.1 h1:y0fUlFfIZhPF1W537XOLg0/fcx6zcHCJwooC2xJA040=

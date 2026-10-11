@@ -5,11 +5,15 @@ go 1.27.0
 require (
 	github.com/alicebob/miniredis/v2 v2.40.0
 	github.com/aws-observability/aws-otel-go/exporters/xrayudp v1.0.0
+	github.com/aws/aws-cryptographic-material-providers-library/releases/go/mpl v0.4.0
+	github.com/aws/aws-cryptographic-material-providers-library/releases/go/primitives v0.4.0
+	github.com/aws/aws-encryption-sdk/releases/go/encryption-sdk v0.4.0
 	github.com/aws/aws-lambda-go v1.55.1
 	github.com/aws/aws-sdk-go-v2 v1.47.3
 	github.com/aws/aws-sdk-go-v2/config v1.33.9
 	github.com/aws/aws-sdk-go-v2/credentials v1.20.9
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.70.3
+	github.com/aws/aws-sdk-go-v2/service/kms v1.61.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.114.3
 	github.com/aws/smithy-go v1.28.5
 	github.com/aws/smithy-go/tracing/smithyoteltracing v1.0.33
@@ -17,6 +21,7 @@ require (
 	github.com/jmespath-community/go-jmespath v1.1.1
 	github.com/jwx-go/es256k/v4 v4.0.4
 	github.com/lestrrat-go/jwx/v4 v4.5.0
+	github.com/ohler55/ojg v1.28.7
 	github.com/redis/go-redis/v9 v9.23.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 	github.com/stretchr/testify v1.12.1
@@ -36,6 +41,9 @@ require (
 )
 
 require (
+	github.com/aws/aws-cryptographic-material-providers-library/releases/go/dynamodb v0.4.0 // indirect
+	github.com/aws/aws-cryptographic-material-providers-library/releases/go/kms v0.4.0 // indirect
+	github.com/aws/aws-cryptographic-material-providers-library/releases/go/smithy-dafny-standard-library v0.4.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.22 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.20.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.5.6 // indirect
@@ -52,6 +60,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.51.4 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/dafny-lang/DafnyRuntimeGo/v4 v4.11.3 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
