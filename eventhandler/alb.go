@@ -148,11 +148,7 @@ func checkALBSize(resp events.ALBTargetGroupResponse) error {
 // again: how Python answers a response that turned out too big.
 func (r *Router) serveError(req *http.Request, err error) (*lambdahttp.ResponseBuffer, error) {
 	inv := lambdahttp.FromContext(req.Context())
-	escaped := r.stripPrefixes(req.URL.EscapedPath())
-	rt, _ := r.match(req.Method, escaped, req.URL.Path, inv != nil && inv.TrailingSlash)
-	st := &requestState{router: r, route: rt}
-	routed := req.WithContext(context.WithValue(req.Context(), stateKey{}, st))
-	st.request = routed
+	st, routed := r.prepare(req, inv)
 	buf := lambdahttp.NewResponseBuffer()
 	r.handleError(buf, routed, err)
 	if inv != nil && inv.Err != nil {

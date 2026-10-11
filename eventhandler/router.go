@@ -173,30 +173,11 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		buf = lambdahttp.NewResponseBuffer()
 	}
 
-	escaped := r.stripPrefixes(req.URL.EscapedPath())
-	decoded, err := url.PathUnescape(escaped)
-	if err != nil {
-		decoded = escaped
-	}
-	trailing := inv != nil && inv.TrailingSlash
-	rt, values := r.match(req.Method, escaped, decoded, trailing)
-
-	st := &requestState{router: r, route: rt}
-	// A clone, so that the path values set here never reach the request of
-	// an enclosing mux.
-	routed := req.Clone(context.WithValue(req.Context(), stateKey{}, st))
-	routed.URL.Path, routed.URL.RawPath = decoded, ""
-	if escaped != routed.URL.EscapedPath() {
-		routed.URL.RawPath = escaped
-	}
-	for _, name := range slices.Sorted(maps.Keys(values)) {
-		routed.SetPathValue(name, values[name])
-	}
-	st.request = routed
+	st, routed := r.prepare(req, inv)
+	rt := st.route
 
 	var h http.Handler
 	if rt != nil {
-		routed.Pattern = rt.pat.str
 		h = chain(rt.handler, rt.cfg.middlewares)
 	} else {
 		h = r.notFoundHandler()
@@ -205,7 +186,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if r.debug {
 		debug.Logger().DebugContext(req.Context(), "event handler: processing request",
-			"method", req.Method, "path", decoded, "route", routeName(rt),
+			"method", req.Method, "path", routed.URL.Path, "route", routeName(rt),
 			"middlewares", len(r.middlewares)+routeMiddlewares(rt))
 	}
 	h.ServeHTTP(buf, routed)
@@ -216,6 +197,33 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			debug.Logger().DebugContext(req.Context(), "event handler: writing the response failed", "err", err)
 		}
 	}
+}
+
+// prepare matches req and returns the request the route serves: a clone,
+// so that the path values set here never reach the request of an enclosing
+// mux, with the stripped path, the path values, the pattern and the state of
+// the router in its context.
+func (r *Router) prepare(req *http.Request, inv *lambdahttp.Invocation) (*requestState, *http.Request) {
+	escaped := r.stripPrefixes(req.URL.EscapedPath())
+	decoded, err := url.PathUnescape(escaped)
+	if err != nil {
+		decoded = escaped
+	}
+	rt, values := r.match(req.Method, escaped, decoded, inv != nil && inv.TrailingSlash)
+	st := &requestState{router: r, route: rt}
+	routed := req.Clone(context.WithValue(req.Context(), stateKey{}, st))
+	routed.URL.Path, routed.URL.RawPath = decoded, ""
+	if escaped != routed.URL.EscapedPath() {
+		routed.URL.RawPath = escaped
+	}
+	for _, name := range slices.Sorted(maps.Keys(values)) {
+		routed.SetPathValue(name, values[name])
+	}
+	if rt != nil {
+		routed.Pattern = rt.pat.str
+	}
+	st.request = routed
+	return st, routed
 }
 
 func routeName(rt *route) string {

@@ -54,7 +54,7 @@ func TestSwaggerUIPage(t *testing.T) {
 		".swagger-ui{",
 		"persistAuthorization: true",
 		`ui.initOAuth({"clientId":"client","appName":"Todos","scopes":["read"],"usePkceWithAuthorizationCodeGrant":true});`,
-		`<\/script><b>`,
+		`\u003c/script>\u003cb>`,
 	} {
 		assert.Contains(t, page, want)
 	}

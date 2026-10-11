@@ -121,8 +121,13 @@ func (r *Router) finish(buf *lambdahttp.ResponseBuffer, req *http.Request, st *r
 	if st.compress != nil {
 		compress = *st.compress
 	}
-	if compress && acceptsGzip(req) {
-		r.compress(buf, req)
+	if compress && len(buf.Body()) > 0 {
+		// The body depends on Accept-Encoding: caches must keep one per
+		// encoding.
+		addVary(h, "Accept-Encoding")
+		if acceptsGzip(req) {
+			r.compress(buf, req)
+		}
 	}
 }
 

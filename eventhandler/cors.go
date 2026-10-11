@@ -57,18 +57,31 @@ func (c *CORSConfig) allowedOrigin(origin string) string {
 	return ""
 }
 
+// addVary adds name to the Vary header, once.
+func addVary(h http.Header, name string) {
+	for _, v := range h.Values("Vary") {
+		for part := range strings.SplitSeq(v, ",") {
+			if strings.EqualFold(strings.TrimSpace(part), name) {
+				return
+			}
+		}
+	}
+	h.Add("Vary", name)
+}
+
 // apply adds the CORS headers for the request origin to h. A request without
 // an Origin header, or from an origin not allowed, gets none.
 func (c *CORSConfig) apply(h http.Header, origin string) {
+	if slices.ContainsFunc(c.origins(), func(o string) bool { return o != "*" }) {
+		// The answer depends on the origin, even when it carries no CORS
+		// header: caches must keep one per origin.
+		addVary(h, "Origin")
+	}
 	allowed := c.allowedOrigin(origin)
 	if allowed == "" {
 		return
 	}
 	h.Set("Access-Control-Allow-Origin", allowed)
-	if allowed != "*" {
-		// The answer depends on the origin: caches must keep one per origin.
-		h.Add("Vary", "Origin")
-	}
 	headers := map[string]bool{}
 	for _, name := range append(slices.Clone(corsRequiredHeaders), c.AllowHeaders...) {
 		headers[name] = true

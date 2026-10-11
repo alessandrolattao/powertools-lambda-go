@@ -332,6 +332,18 @@ func reset(w http.ResponseWriter) {
 }
 
 func (r *Router) handleError(w http.ResponseWriter, req *http.Request, err error) {
+	if st := stateFrom(req.Context()); st != nil {
+		if st.handlingError {
+			// An error handler (or the not found handler) answered with an
+			// error: running the handlers again would never end.
+			if !writeBuiltinError(w, req, err) {
+				unhandled(w, req, err, r.debug)
+			}
+			return
+		}
+		st.handlingError = true
+		defer func() { st.handlingError = false }()
+	}
 	if svc, ok := errors.AsType[*ServiceError](err); ok && svc.StatusCode == http.StatusNotFound && r.notFound != nil {
 		r.notFound.ServeHTTP(w, req)
 		return

@@ -3,11 +3,11 @@ package eventhandler
 import (
 	"errors"
 	"fmt"
-	"go/token"
 	"net/url"
 	"regexp"
 	"slices"
 	"strings"
+	"unicode"
 )
 
 // ErrInvalidPattern reports a route pattern that cannot be parsed.
@@ -107,11 +107,26 @@ func parseSegment(part string, last bool) (segment, error) {
 		}
 		name, seg.multi = rest, true
 	}
-	if !token.IsIdentifier(name) {
+	if !isIdentifier(name) {
 		return segment{}, fmt.Errorf("%w name %q", errWildcard, name)
 	}
 	seg.name = name
 	return seg, nil
+}
+
+// isIdentifier reports whether name is a Go identifier; unlike
+// go/token.IsIdentifier it accepts keywords ({type}, {range}), as net/http
+// does.
+func isIdentifier(name string) bool {
+	if name == "" {
+		return false
+	}
+	for i, r := range name {
+		if !unicode.IsLetter(r) && r != '_' && (i == 0 || !unicode.IsDigit(r)) {
+			return false
+		}
+	}
+	return true
 }
 
 func validMethod(method string) bool {
@@ -216,7 +231,7 @@ func (p *pattern) withPrefix(prefix string) (*pattern, error) {
 		return p, nil
 	}
 	if p.re != nil {
-		re, err := regexp.Compile(regexp.QuoteMeta(prefix) + p.path)
+		re, err := regexp.Compile(regexp.QuoteMeta(prefix) + "(?:" + p.path + ")")
 		if err != nil {
 			return nil, fmt.Errorf("%w: prefix %q: %w", ErrInvalidPattern, prefix, err)
 		}

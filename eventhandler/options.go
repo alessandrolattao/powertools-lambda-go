@@ -1,6 +1,7 @@
 package eventhandler
 
 import (
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
 	"net/http"
@@ -32,7 +33,7 @@ type stripPrefix struct {
 func defaultConfig() config {
 	return config{
 		serializer:   marshalJSON,
-		deserializer: func(data []byte, v any) error { return json.Unmarshal(data, v) },
+		deserializer: unmarshalJSON,
 	}
 }
 
@@ -84,7 +85,7 @@ func WithSerializer(marshal func(v any) ([]byte, error)) Option {
 
 // WithDeserializer replaces the JSON decoder of the request bodies of typed
 // operations: Python's json_body_deserializer. The default is
-// encoding/json/v2's Unmarshal.
+// encoding/json/v2's Unmarshal, accepting duplicate names as Python does.
 func WithDeserializer(unmarshal func(data []byte, v any) error) Option {
 	return func(c *config) { c.deserializer = unmarshal }
 }
@@ -101,6 +102,15 @@ func WithResponseValidation(status int) Option {
 // Python's configure_openapi.
 func WithOpenAPI(cfg OpenAPIConfig) Option {
 	return func(c *config) { c.openapi = cfg }
+}
+
+// unmarshalJSON is the default deserializer. It accepts duplicate names,
+// the last one winning, as Python's json module does.
+func unmarshalJSON(data []byte, v any) error {
+	if err := json.Unmarshal(data, v, jsontext.AllowDuplicateNames(true)); err != nil {
+		return fmt.Errorf("decode JSON: %w", err)
+	}
+	return nil
 }
 
 // marshalJSON is the default serializer: deterministic, so that a map

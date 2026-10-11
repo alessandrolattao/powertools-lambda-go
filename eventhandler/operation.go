@@ -264,7 +264,14 @@ func (o *operation[In, Out]) write(w http.ResponseWriter, req *http.Request, st 
 		return err
 	}
 	for name, values := range parts.header {
-		w.Header()[http.CanonicalHeaderKey(name)] = values
+		name = http.CanonicalHeaderKey(name)
+		// Cookies and Vary accumulate; other headers of the response replace
+		// those a middleware set before.
+		if name == "Set-Cookie" || name == "Vary" {
+			w.Header()[name] = append(w.Header()[name], values...)
+			continue
+		}
+		w.Header()[name] = values
 	}
 	for _, c := range parts.cookies {
 		http.SetCookie(w, c)

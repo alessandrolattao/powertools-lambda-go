@@ -18,6 +18,10 @@ type requestState struct {
 	// compress is the compression choice of a typed operation's Response,
 	// which wins over the route's.
 	compress *bool
+	// handlingError is set while an error handler runs, so that a handler
+	// failing with an error gets the built-in response instead of calling
+	// itself again.
+	handlingError bool
 }
 
 type stateKey struct{}

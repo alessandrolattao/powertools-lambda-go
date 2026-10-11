@@ -249,8 +249,8 @@ func (f *Functions) text(body any) (string, error) {
 func functionValue(p eventsource.BedrockAgentProperty) jsontext.Value {
 	switch p.Type {
 	case "integer":
-		if _, err := strconv.ParseInt(p.Value, 10, 64); err == nil {
-			return jsontext.Value(p.Value)
+		if n, err := strconv.ParseInt(p.Value, 10, 64); err == nil {
+			return jsontext.Value(strconv.FormatInt(n, 10))
 		}
 	case "number":
 		if f, err := strconv.ParseFloat(p.Value, 64); err == nil {

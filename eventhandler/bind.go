@@ -287,27 +287,53 @@ func (b *binding) readBody(plan *inputPlan) error {
 		return nil
 	}
 	contentType := strings.TrimSpace(b.req.Header.Get("Content-Type"))
+	if len(bytes.TrimSpace(b.body)) == 0 {
+		// Nothing to read, whatever the type says: missing required values
+		// are reported as such.
+		b.form = url.Values{}
+		return nil
+	}
+	media := mediaType(contentType)
 	if plan.body != nil {
-		if contentType == "" || strings.HasPrefix(contentType, ContentTypeJSON) {
+		if media == "" || isJSON(media) {
 			return nil
 		}
 		return &UnsupportedContentTypeError{ContentType: contentType}
 	}
-	switch {
-	case strings.HasPrefix(contentType, formContentType):
+	switch media {
+	case formContentType:
 		form, err := url.ParseQuery(string(b.body))
 		if err != nil {
 			return &RequestValidationError{Errors: []ValidationErrorDetail{{Loc: []any{inBody}, Type: "form_invalid", Msg: err.Error()}}, Body: b.body}
 		}
 		b.form = form
-	case strings.HasPrefix(contentType, multipartContentType):
+		return nil
+	case multipartContentType:
 		return b.readMultipart(contentType)
-	case contentType == "" && len(b.body) == 0:
-		b.form = url.Values{}
 	default:
 		return &UnsupportedContentTypeError{ContentType: contentType}
 	}
-	return nil
+}
+
+// mediaType returns the lower-cased media type of a Content-Type value,
+// without parameters; "" when there is none.
+func mediaType(contentType string) string {
+	if contentType == "" {
+		return ""
+	}
+	media, _, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		// A malformed value still names its type before the first ";".
+		media, _, _ = strings.Cut(contentType, ";")
+		media = strings.ToLower(strings.TrimSpace(media))
+	}
+	return media
+}
+
+// isJSON reports whether the media type is JSON: application/json or a
+// structured syntax suffix such as application/problem+json.
+func isJSON(media string) bool {
+	return media == ContentTypeJSON || (strings.HasPrefix(media, "application/") && strings.HasSuffix(media, "+json"))
 }
 
 func (b *binding) readMultipart(contentType string) error {
@@ -559,7 +585,9 @@ func (b *binding) bindBody(plan *inputPlan) (data []byte, decode bool, err error
 	// A body that is not JSON is the only error reported, as in Python,
 	// which gives up on the request at that point.
 	var syntax jsontext.Value
-	if err = json.Unmarshal(b.body, &syntax); err != nil {
+	// Duplicate names are accepted, the last one winning, as Python's json
+	// module and encoding/json do.
+	if err = json.Unmarshal(b.body, &syntax, jsontext.AllowDuplicateNames(true)); err != nil {
 		var offset int64
 		if se, ok := errors.AsType[*jsontext.SyntacticError](err); ok {
 			offset = se.ByteOffset

@@ -212,3 +212,15 @@ func TestAgentOpenAPIRequirements(t *testing.T) {
 	_, err = bedrockagent.OpenAPIJSON(secured)
 	require.ErrorIs(t, err, bedrockagent.ErrSecurityUnsupported)
 }
+
+func TestAgentIntegersAreNormalized(t *testing.T) {
+	t.Parallel()
+	post := load[eventsource.BedrockAgentEvent](t, "bedrockAgentPostEvent.json")
+	media := post.RequestBody.Content["application/json"]
+	media.Properties[0].Type, media.Properties[0].Value = "integer", "+020"
+	post.RequestBody.Content["application/json"] = media
+	resp, err := bedrockagent.Handler(agentApp())(t.Context(), post)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusAccepted, resp.Response.HTTPStatusCode)
+	assert.Contains(t, resp.Response.ResponseBody["application/json"].Body, `"claimId":20`)
+}

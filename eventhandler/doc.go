@@ -151,7 +151,9 @@
 //     carry a status description. VPC Lattice responses send the last cookie
 //     as a Set-Cookie header (Python puts cookies in a field Lattice
 //     ignores).
-//   - CORS responses for a specific origin add Vary: Origin.
+//   - Responses carry Vary: Origin when CORS allows specific origins, and
+//     Vary: Accept-Encoding on routes that compress, so that caches keep the
+//     variants apart.
 //   - The OpenAPI validation error schemas list statusCode and do not
 //     require msg, matching the bodies actually sent; components are named
 //     after the Go type; regular expression routes and routes without a

@@ -123,3 +123,14 @@ func TestFunctionValuesAndBodies(t *testing.T) {
 	_, ok := bedrockagent.FunctionEventFromContext(t.Context())
 	assert.False(t, ok)
 }
+
+func TestIntegersAreNormalized(t *testing.T) {
+	t.Parallel()
+	fns := bedrockagent.NewFunctions()
+	bedrockagent.Tool(fns, "n", func(_ context.Context, in typed) (int, error) { return in.Count, nil })
+	resp, err := fns.Handle(t.Context(), eventsource.BedrockAgentFunctionEvent{Function: "n", Parameters: []eventsource.BedrockAgentProperty{
+		{Name: "count", Type: "integer", Value: "+007"},
+	}})
+	require.NoError(t, err)
+	assert.Equal(t, "7", resp.Response.FunctionResponse.ResponseBody["TEXT"].Body)
+}

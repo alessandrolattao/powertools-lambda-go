@@ -67,6 +67,8 @@ type config struct {
 	compress    bool
 	openapi     []eventhandler.OpenAPIOption
 	document    func(r *http.Request) ([]byte, error)
+	// cache holds the documents built, by base path.
+	cache *sync.Map
 }
 
 // WithPath serves the UI at path instead of DefaultPath.
@@ -163,7 +165,7 @@ var warnSecret = sync.OnceFunc(func() {
 // Handler returns the handler of the Swagger UI page of r's document, for
 // routers that mount it themselves. Enable registers it.
 func Handler(r *eventhandler.Router, opts ...Option) http.Handler {
-	cfg := config{path: DefaultPath}
+	cfg := config{path: DefaultPath, cache: &sync.Map{}}
 	for _, opt := range opts {
 		opt(&cfg)
 	}
@@ -178,13 +180,14 @@ func Handler(r *eventhandler.Router, opts ...Option) http.Handler {
 			eventhandler.Error(w, req, err)
 			return
 		}
-		// "</" would close the <script> the document is inlined into.
-		escaped := strings.ReplaceAll(string(spec), "</", `<\/`)
 		if format == "json" {
-			write(w, req, eventhandler.ContentTypeJSON, escaped)
+			write(w, req, eventhandler.ContentTypeJSON, string(spec))
 			return
 		}
-		page, err := cfg.page(escaped)
+		// Inside the <script> the document is inlined into, "</" would close
+		// it and "<!--" would change how the browser reads the rest: every
+		// "<" of the JSON, which can only be in a string, is escaped.
+		page, err := cfg.page(strings.ReplaceAll(string(spec), "<", `\u003c`))
 		if err != nil {
 			eventhandler.Error(w, req, err)
 			return
@@ -201,10 +204,22 @@ func (c *config) spec(r *eventhandler.Router, req *http.Request) ([]byte, error)
 	if base == "" {
 		base = "/"
 	}
+	// The routes are all registered before the first request: the document
+	// of a base path never changes, and building it is not free.
+	if doc, ok := c.cache.Load(base); ok {
+		if data, ok := doc.([]byte); ok {
+			return data, nil
+		}
+	}
 	opts := append([]eventhandler.OpenAPIOption{func(o *eventhandler.OpenAPIConfig) {
 		o.Servers = []eventhandler.Server{{URL: base}}
 	}}, c.openapi...)
-	return r.OpenAPIJSON(opts...)
+	data, err := r.OpenAPIJSON(opts...)
+	if err != nil {
+		return nil, err
+	}
+	c.cache.Store(base, data)
+	return data, nil
 }
 
 func write(w http.ResponseWriter, req *http.Request, contentType, body string) {

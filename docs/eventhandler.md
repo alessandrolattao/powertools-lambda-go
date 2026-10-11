@@ -324,7 +324,8 @@ A request whose `Origin` is allowed gets `Access-Control-Allow-Origin` (the
 origin itself, or `*` when any origin is allowed), the allowed headers
 (always `Authorization`, `Content-Type`, `X-Amz-Date`, `X-Api-Key`,
 `X-Amz-Security-Token`, plus yours), the exposed headers, the max age and,
-for a specific origin, the credentials flag and `Vary: Origin`. A route turns
+for a specific origin, the credentials flag. Unless any origin is allowed,
+every response carries `Vary: Origin`. A route turns
 CORS off with `CORS(false)`, or on in a router without `WithCORS` with
 `CORS(true)`.
 
@@ -538,7 +539,9 @@ resp, err := handler(ctx, events.APIGatewayProxyRequest{HTTPMethod: "GET", Path:
   send the last cookie as a `Set-Cookie` header, where Python puts them in a
   field Lattice ignores.
 * Errors raised in handlers reach the middlewares around them as responses.
-* CORS responses for a specific origin add `Vary: Origin`.
+* Responses carry `Vary: Origin` when CORS allows specific origins, and
+  `Vary: Accept-Encoding` on routes that compress, so that caches keep the
+  variants apart.
 * A body flagged base64 that is not is passed as it is, not rejected.
 * `SchemaValidation` validates responses against the outbound schema; Python
   validates them against the inbound one, and only with outbound formats.
