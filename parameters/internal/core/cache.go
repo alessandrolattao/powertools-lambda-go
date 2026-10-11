@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"golang.org/x/sync/singleflight"
@@ -124,7 +125,11 @@ func Fetch[V any](ctx context.Context, c *Cache, key Key, maxAge time.Duration, 
 		}
 	}
 	generation := c.currentGeneration()
+	// led is set when this caller's function is the shared call: the
+	// singleflight runs only the first caller's.
+	var led atomic.Bool
 	results := c.flights.DoChan(key.flight(), func() (any, error) {
+		led.Store(true)
 		shared, cancel := detach(ctx)
 		defer cancel()
 		value, err := fetch(shared)
@@ -138,9 +143,11 @@ func Fetch[V any](ctx context.Context, c *Cache, key Key, maxAge time.Duration, 
 	case <-ctx.Done():
 		return zero, fmt.Errorf("wait for the value: %w", context.Cause(ctx))
 	case res := <-results:
-		if res.Err != nil && isContextError(res.Err) && ctx.Err() == nil {
+		if res.Err != nil && isContextError(res.Err) && ctx.Err() == nil && !led.Load() {
 			// The call ran out of the time of the caller that started it,
-			// not ours: try again on our own context.
+			// not ours: try again on our own context. The caller that
+			// started it does not: its detached context's timer may fire a
+			// moment before its own context notices the same deadline.
 			value, err := fetch(ctx)
 			if err == nil {
 				c.storeIf(generation, key, value, maxAge)
