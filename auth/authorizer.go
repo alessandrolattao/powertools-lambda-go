@@ -191,6 +191,9 @@ func validARN(arn string) (string, error) {
 // keys and errors from a custom Verifier are returned, so that the
 // invocation fails.
 func authorize(ctx context.Context, v Verifier, opts []AuthorizerOption, principal bool, token func() (string, error)) (claims *Claims, allowed bool, cfg *authorizerConfig, err error) {
+	if v == nil {
+		return nil, false, nil, fmt.Errorf("%w: a verifier is required", ErrInvalidConfig)
+	}
 	if cfg, err = newAuthorizerConfig(opts); err != nil {
 		return nil, false, nil, err
 	}

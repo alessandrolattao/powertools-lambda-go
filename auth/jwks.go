@@ -92,9 +92,10 @@ type flight struct {
 func newJWKSCache(id cacheIdentity, now func() time.Time) *jwksCache {
 	client := defaultClient
 	if id.client != nil {
+		// The caller's transport and timeout, without its redirects or its
+		// cookies.
 		client = &http.Client{
 			Transport:     id.client.Transport,
-			Jar:           id.client.Jar,
 			Timeout:       id.client.Timeout,
 			CheckRedirect: noRedirect,
 		}
@@ -269,13 +270,14 @@ func (c *jwksCache) fetch(ctx context.Context) (*keySet, error) {
 // getJSON reads a JSON object of at most 1 MiB from target, which must
 // answer 200.
 func (c *jwksCache) getJSON(ctx context.Context, target string) (map[string]jsontext.Value, error) {
-	//nolint:gosec // G704: target is the configured or discovered key endpoint, validated as HTTPS.
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, target, http.NoBody)
+	// target is the configured key endpoint, or the one the discovery
+	// document names, both validated as HTTPS URLs.
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, target, http.NoBody) //nolint:gosec // G704: see above
 	if err != nil {
 		return nil, fmt.Errorf("build the request: %w", err)
 	}
 	req.Header.Set("Accept", "application/json")
-	resp, err := c.client.Do(req) //nolint:gosec // G704: see above.
+	resp, err := c.client.Do(req) //nolint:gosec // G704: see above
 	if err != nil {
 		return nil, fmt.Errorf("send the request: %w", err)
 	}

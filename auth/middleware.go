@@ -90,6 +90,9 @@ type requireConfig struct {
 //
 // An invalid scope fails with ErrInvalidConfig.
 func Require(v Verifier, opts ...RequireOption) (func(http.Handler) http.Handler, error) {
+	if v == nil {
+		return nil, fmt.Errorf("%w: a verifier is required", ErrInvalidConfig)
+	}
 	var cfg requireConfig
 	for _, opt := range opts {
 		opt.applyRequire(&cfg)

@@ -134,6 +134,10 @@ func TestRequireErrorResponse(t *testing.T) {
 
 func TestRequireRefusesInvalidScopes(t *testing.T) {
 	t.Parallel()
+	_, err := Require(nil)
+	require.ErrorIs(t, err, ErrInvalidConfig)
+	_, err = AuthorizeToken(t.Context(), nil, tokenEvent("Bearer good"))
+	require.ErrorIs(t, err, ErrInvalidConfig)
 	for _, scopes := range [][]string{{""}, {"a b"}, {`a"b`}, {`a\b`}, {"café"}} {
 		_, err := Require(claimsVerifier(t, `{}`, nil), WithScopes(scopes...))
 		require.ErrorIs(t, err, ErrInvalidConfig, "%q", scopes)
