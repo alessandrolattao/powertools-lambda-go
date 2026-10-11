@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"slices"
 	"sync"
+	"sync/atomic"
 
 	"github.com/alessandrolattao/powertools-lambda-go/internal/debug"
 )
@@ -30,11 +31,14 @@ type invocation struct {
 	loggers     map[*core]*entry
 }
 
-// entry is the state one logger keeps for one invocation.
+// entry is the state one logger keeps for one invocation. The buffer
+// pointer is set before the entry is published and never changes; sampled
+// and closed change while other goroutines of the invocation log, so they
+// are atomic.
 type entry struct {
-	sampled bool
+	sampled atomic.Bool
 	buffer  *buffer
-	closed  bool
+	closed  atomic.Bool
 }
 
 // scope is a set of keys bound to a context by WithKeys.

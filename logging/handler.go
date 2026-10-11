@@ -2,6 +2,7 @@ package logging
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -192,7 +193,7 @@ func (c *core) minLevel(e *entry) slog.Level {
 	}
 	sampled := c.sampled.Load()
 	if e != nil {
-		sampled = e.sampled
+		sampled = e.sampled.Load()
 	}
 	if sampled {
 		return min(level, slog.LevelDebug)
@@ -203,7 +204,7 @@ func (c *core) minLevel(e *entry) slog.Level {
 // bufferable reports whether a record at level goes to the invocation's
 // buffer rather than out.
 func (c *core) bufferable(e *entry, level slog.Level) bool {
-	return e != nil && e.buffer != nil && !e.closed && level <= c.buffer.at
+	return e != nil && e.buffer != nil && !e.closed.Load() && level <= c.buffer.at
 }
 
 // entry returns the state the handler keeps for the invocation ctx belongs
@@ -223,7 +224,8 @@ func (c *core) entryLocked(inv *invocation) *entry {
 	if e, ok := inv.loggers[c]; ok {
 		return e
 	}
-	e := &entry{sampled: c.roll()}
+	e := &entry{}
+	e.sampled.Store(c.roll())
 	if c.buffer != nil {
 		e.buffer = newBuffer(c.buffer.maxBytes)
 	}
@@ -244,23 +246,24 @@ func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
 func (h *Handler) handle(ctx context.Context, r slog.Record, message any) error {
 	c := h.core
 	e := c.entry(ctx)
+	// A failed flush must not cost the record that triggered it: the error
+	// record is the one that matters most.
+	var flushErr error
 	if r.Level >= slog.LevelError && c.buffer != nil && c.buffer.flushOnError {
-		if err := c.flush(ctx, e); err != nil {
-			return err
-		}
+		flushErr = c.flush(ctx, e)
 	}
 	buffered := c.bufferable(e, r.Level)
 	if !buffered && r.Level < c.minLevel(e) {
-		return nil
+		return flushErr
 	}
 	line, err := h.encode(ctx, r, message)
 	if err != nil {
-		return err
+		return errors.Join(flushErr, err)
 	}
 	if buffered && c.keep(ctx, e, line) {
-		return nil
+		return flushErr
 	}
-	return c.write(line)
+	return errors.Join(flushErr, c.write(line))
 }
 
 // keep buffers line for the invocation. A line larger than the whole buffer
@@ -268,8 +271,8 @@ func (h *Handler) handle(ctx context.Context, r slog.Record, message any) error 
 func (c *core) keep(ctx context.Context, e *entry, line []byte) bool {
 	inv := invocationFrom(ctx)
 	inv.mu.Lock()
-	kept := !e.closed && e.buffer.add(line)
-	closed := e.closed
+	kept := !e.closed.Load() && e.buffer.add(line)
+	closed := e.closed.Load()
 	inv.mu.Unlock()
 	if !kept && !closed {
 		c.warns.warn(ctx, fmt.Sprintf("Cannot add item to the buffer. Item size exceeds total cache size %d bytes",
@@ -391,7 +394,7 @@ func (h *Handler) RefreshSampleRateCalculation(ctx context.Context) {
 	}
 	inv.mu.Lock()
 	defer inv.mu.Unlock()
-	c.entryLocked(inv).sampled = c.roll()
+	c.entryLocked(inv).sampled.Store(c.roll())
 }
 
 // begin starts an invocation for the handler: the state in the context,
@@ -427,7 +430,7 @@ func (c *core) end(ctx context.Context) {
 	inv.mu.Lock()
 	defer inv.mu.Unlock()
 	if e, ok := inv.loggers[c]; ok {
-		e.closed = true
+		e.closed.Store(true)
 		if e.buffer != nil {
 			e.buffer.reset()
 		}
