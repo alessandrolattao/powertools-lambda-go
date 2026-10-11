@@ -85,6 +85,12 @@ func ParseConfluentMessageIndexes(data []byte) (indexes []int64, rest []byte, er
 	return indexes, data, nil
 }
 
+// MaxGlueInflatedSize bounds what a zlib-compressed Glue payload may inflate
+// to: Lambda delivers at most 6 MB of event, so a record value far beyond it
+// is a decompression bomb, not a message, and would otherwise take the
+// function down on every retry.
+const MaxGlueInflatedSize = 64 << 20
+
 // GlueHeader is the header of the AWS Glue Schema Registry wire format.
 type GlueHeader struct {
 	// SchemaVersionID identifies the schema version in the registry.
@@ -95,7 +101,7 @@ type GlueHeader struct {
 
 // ParseGlueHeader reads the 18-byte header of the AWS Glue Schema Registry
 // wire format and returns it with the payload that follows, decompressed
-// when the producer compressed it.
+// when the producer compressed it (up to MaxGlueInflatedSize).
 func ParseGlueHeader(data []byte) (GlueHeader, []byte, error) {
 	var header GlueHeader
 	if len(data) < glueHeaderSize {
@@ -115,9 +121,12 @@ func ParseGlueHeader(data []byte) (GlueHeader, []byte, error) {
 		if err != nil {
 			return header, nil, fmt.Errorf("%w: zlib: %w", ErrInvalidWireFormat, err)
 		}
-		inflated, err := io.ReadAll(zr)
+		inflated, err := io.ReadAll(io.LimitReader(zr, MaxGlueInflatedSize+1))
 		if err != nil {
 			return header, nil, fmt.Errorf("%w: zlib: %w", ErrInvalidWireFormat, err)
+		}
+		if len(inflated) > MaxGlueInflatedSize {
+			return header, nil, fmt.Errorf("%w: zlib payload inflates beyond %d bytes", ErrInvalidWireFormat, MaxGlueInflatedSize)
 		}
 		return header, inflated, nil
 	default:

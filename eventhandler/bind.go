@@ -19,6 +19,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alessandrolattao/powertools-lambda-go/eventhandler/internal/schema"
+
 	"github.com/alessandrolattao/powertools-lambda-go/eventhandler/internal/lambdahttp"
 	"github.com/alessandrolattao/powertools-lambda-go/internal/env"
 )
@@ -558,7 +560,10 @@ func coerceFloat(raw string, v reflect.Value) (value reflect.Value, instance any
 		return v, nil, "finite_number", fmt.Errorf("%q: %w", raw, errNotFinite)
 	}
 	v.SetFloat(parsed)
-	return v, parsed, "", nil
+	// Validate the value the field holds, written at the field's own
+	// precision: a float32 0.1 widened to float64 would read
+	// 0.10000000149011612 and fail maximum:"0.1".
+	return v, schema.Number(strconv.FormatFloat(parsed, 'g', -1, v.Type().Bits())), "", nil
 }
 
 // bindBody checks the JSON body and puts it in the validation instance. It

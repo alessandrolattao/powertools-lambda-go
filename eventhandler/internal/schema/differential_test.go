@@ -86,6 +86,9 @@ func FuzzDecode(f *testing.F) {
 	f.Fuzz(func(t *testing.T, data []byte) {
 		ref, refErr := jsv.UnmarshalJSON(bytes.NewReader(data))
 		ours, err := schema.Decode(data)
+		if errors.Is(err, schema.ErrNumberRange) {
+			return // a deliberate bound the reference does not have
+		}
 		if (refErr == nil) != (err == nil) {
 			t.Fatalf("%q: reference error %v, ours %v", data, refErr, err)
 		}

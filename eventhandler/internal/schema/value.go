@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 // Number is a JSON number, kept as its text so that no precision is lost.
@@ -18,6 +19,38 @@ type Number string
 
 // errTrailing reports data after the JSON value.
 var errTrailing = errors.New("data after the JSON value")
+
+// ErrNumberRange reports a JSON number no Go field could hold, which exact
+// arithmetic would spend an unbounded time on (1e999999 takes big.Rat tens
+// of milliseconds): a request is not allowed to make the function work that
+// hard for a value it must reject anyway.
+var ErrNumberRange = errors.New("number out of range")
+
+// The bounds of a sane JSON number: float64 reaches 1e308, and the longest
+// decimal that tells two float64 apart has far fewer digits.
+const (
+	maxNumberLength   = 4096
+	maxNumberExponent = 400
+)
+
+// sane reports whether the JSON number literal s is within the bounds above.
+// Zero is sane whatever its exponent (0e700 is 0).
+func sane(s string) bool {
+	if len(s) > maxNumberLength {
+		return false
+	}
+	mantissa, exponent, found := strings.Cut(strings.ToLower(s), "e")
+	if !found || zero(mantissa) {
+		return true
+	}
+	exp, err := strconv.Atoi(exponent)
+	if err != nil || exp > maxNumberExponent || exp < -maxNumberExponent {
+		return false
+	}
+	// Digits in the mantissa shift the magnitude as much as the exponent.
+	intDigits, _, _ := strings.Cut(strings.TrimLeft(mantissa, "-"), ".")
+	return len(intDigits)+exp <= maxNumberExponent
+}
 
 // Decode decodes JSON into the values Validate reads: nil, bool, Number,
 // string, []any and map[string]any. As encoding/json, it accepts duplicate
@@ -47,7 +80,11 @@ func decodeValue(dec *jsontext.Decoder) (any, error) {
 	case '"':
 		return tok.String(), nil
 	case '0':
-		return Number(tok.String()), nil
+		literal := tok.String()
+		if !sane(literal) {
+			return nil, fmt.Errorf("decode JSON: %w", ErrNumberRange)
+		}
+		return Number(literal), nil
 	case '[':
 		return decodeArray(dec)
 	default: // '{'
@@ -141,11 +178,20 @@ func number(v any) (Number, bool) {
 	}
 }
 
-// rat returns the exact value of a number.
+// zero reports whether a mantissa has no digit other than 0.
+func zero(mantissa string) bool {
+	return strings.Trim(mantissa, "-+0.") == ""
+}
+
+// rat returns the exact value of a number. A number beyond the sane bounds
+// has none worth computing: Decode never lets one in.
 func rat(v any) (*big.Rat, bool) {
 	n, ok := number(v)
-	if !ok {
+	if !ok || !sane(string(n)) {
 		return nil, false
+	}
+	if mantissa, _, found := strings.Cut(strings.ToLower(string(n)), "e"); found && zero(mantissa) {
+		return new(big.Rat), true // 0e999999 is 0: spare big.Rat the exponent
 	}
 	return new(big.Rat).SetString(string(n))
 }
