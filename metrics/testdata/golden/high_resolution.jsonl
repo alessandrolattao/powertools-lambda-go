@@ -1,0 +1,1 @@
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"ServerlessAirline","Dimensions":[["service"]],"Metrics":[{"Name":"SuccessfulBooking","Unit":"Count","StorageResolution":1},{"Name":"Latency","Unit":"Milliseconds"}]}]},"service":"booking","SuccessfulBooking":[1.0],"Latency":[12.5]}

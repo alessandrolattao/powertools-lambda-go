@@ -1,0 +1,1 @@
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"TestApp","Dimensions":[["tenant_id","application"],["tenant_id","application","environment"],["tenant_id","application","region"]],"Metrics":[{"Name":"ApiCalls","Unit":"Count"}]}]},"tenant_id":"123","application":"api","environment":"prod","region":"eu-west-1","ApiCalls":[5.0]}

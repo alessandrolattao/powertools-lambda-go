@@ -1,0 +1,1 @@
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"ServerlessAirline","Dimensions":[[]],"Metrics":[{"Name":"Throughput","Unit":"Bytes/Second"},{"Name":"Ratio","Unit":"None"},{"Name":"Rate","Unit":"Count/Second"}]}]},"Throughput":[2048.0],"Ratio":[0.5],"Rate":[3.0]}

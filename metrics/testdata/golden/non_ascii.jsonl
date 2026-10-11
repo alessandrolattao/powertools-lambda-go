@@ -1,0 +1,1 @@
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"Caf\u00e9","Dimensions":[["city"]],"Metrics":[{"Name":"\u00dcnits","Unit":"Count"}]}]},"city":"Z\u00fcrich \u2615 \ud83d\ude00","note":"tab\there \"quoted\" \\ back\u007fdel \u2028","\u00dcnits":[1.0]}

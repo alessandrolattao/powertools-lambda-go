@@ -1,0 +1,2 @@
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"ServerlessAirline","Dimensions":[["function_name"]],"Metrics":[{"Name":"ColdStart","Unit":"Count"}]}]},"function_name":"test","ColdStart":[1.0]}
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"ServerlessAirline","Dimensions":[[]],"Metrics":[{"Name":"SuccessfulBooking","Unit":"Count"}]}]},"SuccessfulBooking":[1.0]}

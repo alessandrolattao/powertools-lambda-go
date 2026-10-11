@@ -1,0 +1,1 @@
+{"_aws":{"Timestamp":1700000000500,"CloudWatchMetrics":[{"Namespace":"TestApp","Dimensions":[["service"],["environment","region"],["environment"],["region"]],"Metrics":[{"Name":"SuccessfulRequests","Unit":"Count"}]}]},"service":"booking","environment":"prod","region":"us-east-1","SuccessfulRequests":[10.0]}
