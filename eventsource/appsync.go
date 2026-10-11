@@ -124,6 +124,23 @@ type AppSyncIdentity struct {
 	ResolverContext map[string]any `json:"resolverContext,omitempty"`
 }
 
+// UnmarshalJSON decodes the identity. An identity that is not an object (the
+// string "None" some AppSync payloads carry for an API key request) is left
+// empty rather than failing the whole event, as AppSyncPrev does.
+func (i *AppSyncIdentity) UnmarshalJSON(data []byte) error {
+	if jsontext.Value(data).Kind() != '{' {
+		*i = AppSyncIdentity{}
+		return nil
+	}
+	type plain AppSyncIdentity // the same fields, without this method
+	var decoded plain
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return fmt.Errorf("decode identity: %w", err)
+	}
+	*i = AppSyncIdentity(decoded)
+	return nil
+}
+
 // Authorization tells how the caller was authorized. Powertools Python only
 // tells Cognito (any identity with a sub) from IAM; this also recognizes
 // OpenID Connect and Lambda identities.
