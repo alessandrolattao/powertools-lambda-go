@@ -190,6 +190,9 @@ linters:
         - name: package-comments
         - name: blank-imports
         - name: context-as-argument
+          arguments:
+            # Test helpers take *testing.T first, as thelper wants.
+            - allowTypesBefore: "*testing.T"
         - name: context-keys-type
         - name: dot-imports
         - name: error-return
