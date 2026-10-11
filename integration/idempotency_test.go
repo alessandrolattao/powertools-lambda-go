@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"math/rand/v2"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,6 +13,7 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+	"uuid"
 
 	awsdynamodb "github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -61,11 +61,12 @@ func (c *charger) charge(_ context.Context, p payment) (paymentResult, error) {
 	return paymentResult{PaymentID: fmt.Sprintf("%s-%s-%d", p.UserID, p.ProductID, run), Message: "success"}, nil
 }
 
-// unique names a resource after the test, so that parallel tests never meet.
+// unique names a resource after the test and a fresh UUID, so that neither
+// parallel tests nor repeated runs (-count) against the same emulator meet.
 func unique(t *testing.T) string {
 	t.Helper()
 	name := regexp.MustCompile(`[^A-Za-z0-9]+`).ReplaceAllString(t.Name(), "-")
-	return fmt.Sprintf("%s-%06d", strings.Trim(name, "-"), rand.IntN(1_000_000))
+	return strings.Trim(name, "-") + "-" + uuid.New().String()[:13]
 }
 
 func md5Hex(s string) string {

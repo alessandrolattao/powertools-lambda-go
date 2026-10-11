@@ -194,7 +194,7 @@ func TestAuthWithCognito(t *testing.T) {
 		t.Run("client credentials with "+string(method), func(t *testing.T) {
 			t.Parallel()
 			secrets := secretsmanager.NewFromConfig(suite.aws)
-			name := "oauth2/" + t.Name()
+			name := "oauth2/" + unique(t)
 			_, err := secrets.CreateSecret(t.Context(), &secretsmanager.CreateSecretInput{Name: aws.String(name), SecretString: aws.String(c.secret)})
 			require.NoError(t, err)
 			var lookups atomic.Int32

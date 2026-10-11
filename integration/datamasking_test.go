@@ -132,7 +132,7 @@ func TestDataMaskingKMSMultipleKeys(t *testing.T) {
 func TestDataMaskingKMSKeyErrors(t *testing.T) {
 	t.Parallel()
 	key := kmsKey(t, suite.aws)
-	alias := "alias/powertools-" + strings.ToLower(strings.ReplaceAll(t.Name(), "/", "-"))
+	alias := "alias/powertools-" + strings.ToLower(unique(t))
 	_, err := awskms.NewFromConfig(suite.aws).CreateAlias(t.Context(), &awskms.CreateAliasInput{
 		AliasName: aws.String(alias), TargetKeyId: aws.String(key),
 	})
