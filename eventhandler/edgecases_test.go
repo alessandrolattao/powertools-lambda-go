@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/swaggest/jsonschema-go"
 )
 
 func TestKeywordWildcardNames(t *testing.T) {
@@ -112,4 +113,25 @@ func TestALBSizeErrorHandlerSeesThePathValues(t *testing.T) {
 	resp, err := ALB(app, WithResponseSizeValidation())(t.Context(), events.ALBTargetGroupRequest{HTTPMethod: "GET", Path: "/big/7"})
 	require.NoError(t, err)
 	assert.Equal(t, `"7 GET /big/{id}"`, resp.Body)
+}
+
+// notThis shapes a schema with a keyword the validator does not enforce.
+type notThis struct {
+	A string `json:"a"`
+}
+
+func (notThis) PrepareJSONSchema(s *jsonschema.Schema) error {
+	s.WithNot((&jsonschema.Schema{}).ToSchemaOrBool())
+	return nil
+}
+
+func TestUnsupportedSchemaFailsAtRegistration(t *testing.T) {
+	t.Parallel()
+	defer func() {
+		err, ok := recover().(error)
+		require.True(t, ok, "Register panics with an error")
+		require.ErrorIs(t, err, ErrInvalidOperation)
+		require.ErrorContains(t, err, `keyword "not"`)
+	}()
+	Post(New(), "/x", func(context.Context, struct{ Body notThis }) (bool, error) { return true, nil })
 }

@@ -294,6 +294,22 @@ backreferences. `WithRegexpEngine` plugs in an engine such as
 (`42`). It describes the first failure; it unwraps to the engine's
 `*jsonschema.ValidationError`, whose `BasicOutput()` lists every failure.
 
+### Validating API requests
+
+To validate the bodies of the requests (and responses) of an
+[event handler](eventhandler.md) router, use the
+`eventhandler/schemavalidation` package, Python's
+`SchemaValidationMiddleware`. It takes the schemas and the options of this
+package:
+
+```go
+app.Handle("POST /orders", createOrder,
+	eventhandler.Middlewares(schemavalidation.Middleware(orderSchema, nil)))
+```
+
+A request that breaks the schema answers 400
+`{"statusCode":400,"message":"Bad Request: <message>"}`.
+
 ## Testing your code
 
 Validation needs no AWS resources: call `Validate`, or the decorated

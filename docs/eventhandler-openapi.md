@@ -127,6 +127,23 @@ Types can shape their own schema with jsonschema-go's interfaces
 (`PrepareJSONSchema`, `JSONSchema`, `JSONSchemaOneOf` for discriminated
 unions, decoded by the type's `UnmarshalJSON`).
 
+The schemas compile when the operation registers, with a validator built
+into the event handler: a general JSON Schema engine compiles the
+meta-schemas of every draft when it loads, milliseconds of every cold start.
+It implements the keywords the tags generate: `type` (with `null`), `enum`,
+`const`, `format`, `$ref` within the document, `properties`, `required`,
+`additionalProperties`, `minProperties`, `maxProperties`, `items`,
+`minItems`, `maxItems`, `uniqueItems`, `minLength`, `maxLength` (in
+characters), `pattern`, `minimum`, `maximum`, `exclusiveMinimum`,
+`exclusiveMaximum`, `multipleOf`, `allOf`, `anyOf`, `oneOf`. Its formats are
+`date-time`, `date`, `time`, `duration`, `email`, `hostname`, `ipv4`,
+`ipv6`, `uri`, `uri-reference`, `iri`, `iri-reference`, `uuid` and `regex`;
+`int32`, `int64`, `float`, `double`, `byte`, `binary` and `password`
+describe without constraining. A schema with anything else (`not`,
+`if`/`then`, `patternProperties`, another format), which only a type's own
+schema methods can produce, makes the registration panic instead of being
+half enforced.
+
 ### Handling validation errors
 
 A request that does not match its input answers 422 with Python's body, the

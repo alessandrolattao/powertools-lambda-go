@@ -384,14 +384,20 @@ middlewares around them see the error response and can change it after
 
 #### Schema validation middleware
 
-`SchemaValidation` validates the JSON body of every request (and, with an
-outbound schema, of every response) against a JSON Schema with the
+`schemavalidation.Middleware`, in the `eventhandler/schemavalidation`
+package, validates the JSON body of every request (and, with an outbound
+schema, of every response) against a JSON Schema with the
 [validation](validation.md) utility: a request that breaks it answers 400
 `Bad Request: <message>`.
 
 ```go
-app.Handle("POST /users", createUser, eventhandler.Middlewares(eventhandler.SchemaValidation(userSchema, nil)))
+app.Handle("POST /users", createUser,
+	eventhandler.Middlewares(schemavalidation.Middleware(userSchema, nil)))
 ```
+
+It is a package of its own so that functions that do not use it do not load
+a general JSON Schema engine, whose initialization costs milliseconds of
+every cold start. Typed operations validate their input without it.
 
 #### Sharing contextual data
 
@@ -543,8 +549,9 @@ resp, err := handler(ctx, events.APIGatewayProxyRequest{HTTPMethod: "GET", Path:
   `Vary: Accept-Encoding` on routes that compress, so that caches keep the
   variants apart.
 * A body flagged base64 that is not is passed as it is, not rejected.
-* `SchemaValidation` validates responses against the outbound schema; Python
-  validates them against the inbound one, and only with outbound formats.
+* `schemavalidation.Middleware` validates responses against the outbound
+  schema; Python validates them against the inbound one, and only with
+  outbound formats.
 * Not ported: `resolve_async` (goroutines), `dependency_overrides`
   (constructor injection), the specialized routers (one `Router` serves every
   source).

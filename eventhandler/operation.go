@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
-	"sync"
 
 	"github.com/swaggest/openapi-go"
 )
@@ -53,9 +52,12 @@ import (
 // handlers (see OnError); an error none handles fails the invocation, as an
 // exception does in Python.
 //
-// Register panics when the pattern is invalid or has no method, when In is
-// not a struct or binds a field of a type it cannot convert, or when the
-// path parameters of the pattern and of In differ.
+// The schemas compile here, once: Register panics when the pattern is
+// invalid or has no method, when In is not a struct or binds a field of a
+// type it cannot convert, when the path parameters of the pattern and of In
+// differ, or when a schema uses a JSON Schema keyword or format the
+// built-in validator does not enforce (see docs/eventhandler-openapi.md),
+// which only a type's own schema methods can add.
 func Register[In, Out any](r *Router, pattern string, op func(ctx context.Context, in In) (Out, error), opts ...RouteOption) {
 	p, err := parsePattern(pattern)
 	if err != nil {
@@ -134,7 +136,7 @@ type operation[In, Out any] struct {
 	plan *inputPlan
 	// out is the type of the response body: Out, or T for a Response[T].
 	out        reflect.Type
-	validators func() (*validators, error)
+	validators *validators
 }
 
 func newOperation[In, Out any](p *pattern, fn func(context.Context, In) (Out, error)) (*operation[In, Out], error) {
@@ -146,7 +148,11 @@ func newOperation[In, Out any](p *pattern, fn func(context.Context, In) (Out, er
 		return nil, fmt.Errorf("route %q: %w", p.str, err)
 	}
 	o := &operation[In, Out]{pat: p, fn: fn, plan: plan, out: responseBodyType(reflect.TypeFor[Out]())}
-	o.validators = sync.OnceValues(o.compile)
+	// The schemas compile at registration: a schema the validator cannot
+	// enforce fails now, and no request pays for the work.
+	if o.validators, err = o.compile(); err != nil {
+		return nil, fmt.Errorf("%w: route %q: %w", ErrInvalidOperation, p.str, err)
+	}
 	return o, nil
 }
 

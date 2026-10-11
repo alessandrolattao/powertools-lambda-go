@@ -55,8 +55,13 @@
 // github.com/swaggest/jsonschema-go (minimum, maxLength, pattern, enum,
 // format, required...) generate one schema per operation that validates
 // the request, describes the operation in the OpenAPI document and, with
-// WithResponseValidation or ResponseValidation, validates the response. A
-// request that does not conform answers 422 with Python's body:
+// WithResponseValidation or ResponseValidation, validates the response. The
+// schemas compile when the operation registers, with a small validator of
+// the JSON Schema subset the tags generate (a general engine would cost
+// every cold start the compilation of its meta-schemas); a schema using a
+// keyword it does not implement, which a type's own PrepareJSONSchema could
+// add, makes Register panic. A request that does not conform answers 422
+// with Python's body:
 //
 //	{"statusCode":422,"detail":[{"loc":["query","limit"],"type":"int_parsing"}]}
 //
@@ -81,8 +86,8 @@
 // them to one route, after the router's. A middleware short-circuits by
 // writing a response without calling next. Include merges the routes of
 // another router under a prefix, with its middlewares and error handlers,
-// as Python's include_router does. SchemaValidation validates JSON bodies
-// against a JSON Schema with the validation package.
+// as Python's include_router does. The schemavalidation package validates
+// JSON bodies against JSON Schemas with the validation package.
 //
 // # Responses
 //
@@ -159,9 +164,6 @@
 //     after the Go type; regular expression routes and routes without a
 //     method are not documented; bodies of GET, HEAD and DELETE operations
 //     are bound and validated but not documented.
-//   - SchemaValidation validates responses against the outbound schema;
-//     Python validates them against the inbound one, and only when outbound
-//     formats are set.
 //   - A multipart body without a boundary answers 422 (multipart_invalid);
 //     Python raises an unhandled error.
 //   - Not ported: dependency_overrides (inject dependencies with closures or

@@ -254,11 +254,7 @@ func (o *operation[In, Out]) bind(ctx context.Context, req *http.Request, st *re
 	if err != nil {
 		return in, err
 	}
-	v, err := o.validators()
-	if err != nil {
-		return in, err
-	}
-	b.details = append(b.details, v.validateRequest(b.instance, b.failed)...)
+	b.details = append(b.details, o.validators.validateRequest(b.instance, b.failed)...)
 	if len(b.details) > 0 {
 		sortDetails(b.details, o.plan)
 		return in, &RequestValidationError{Errors: b.details, Body: b.body}

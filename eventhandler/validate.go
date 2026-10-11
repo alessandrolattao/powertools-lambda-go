@@ -1,32 +1,22 @@
 package eventhandler
 
 import (
-	"bytes"
 	"cmp"
-	"encoding/json/v2"
-	"errors"
 	"fmt"
 	"net/http"
 	"slices"
-	"strconv"
 	"strings"
-	"sync"
 
-	jsv "github.com/santhosh-tekuri/jsonschema/v6"
-	"github.com/santhosh-tekuri/jsonschema/v6/kind"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
+	"github.com/alessandrolattao/powertools-lambda-go/eventhandler/internal/schema"
 )
 
 // validators are the compiled schemas of a typed operation, taken from the
 // operation's OpenAPI description so that documentation and validation
 // cannot disagree.
 type validators struct {
-	request  *jsv.Schema
-	response *jsv.Schema
+	request  *schema.Schema
+	response *schema.Schema
 }
-
-const schemaURL = "mem://powertools/operation.json"
 
 // compile describes the operation in an OpenAPI document of its own and
 // compiles the schemas of its parameters, body and response.
@@ -50,7 +40,7 @@ func (o *operation[In, Out]) compile() (*validators, error) {
 	props := map[string]any{}
 	for _, raw := range list(op["parameters"]) {
 		param := object(raw)
-		schema, ok := param["schema"]
+		paramSchema, ok := param["schema"]
 		if !ok {
 			continue
 		}
@@ -59,7 +49,7 @@ func (o *operation[In, Out]) compile() (*validators, error) {
 			loc = map[string]any{keyType: typeObject, keyProperties: map[string]any{}}
 			props[stringOf(param["in"])] = loc
 		}
-		child(loc, keyProperties)[stringOf(param[keyName])] = schema
+		child(loc, keyProperties)[stringOf(param[keyName])] = paramSchema
 	}
 	if body := mediaSchema(op["requestBody"]); body != nil {
 		props[inBody] = body
@@ -96,8 +86,8 @@ func validationPath(p *pattern) string {
 func mediaSchema(v any) any {
 	content := at(v, "content")
 	for _, ct := range []string{ContentTypeJSON, formContentType, multipartContentType} {
-		if schema, ok := object(content[ct])["schema"]; ok {
-			return schema
+		if s, ok := object(content[ct])["schema"]; ok {
+			return s
 		}
 	}
 	return nil
@@ -127,26 +117,14 @@ func rewriteRefs(v any) any {
 }
 
 func compileValidators(root map[string]any) (*validators, error) {
-	data, err := json.Marshal(root)
-	if err != nil {
-		return nil, fmt.Errorf("encode the validation schema: %w", err)
-	}
-	doc, err := jsv.UnmarshalJSON(bytes.NewReader(data))
-	if err != nil {
-		return nil, fmt.Errorf("decode the validation schema: %w", err)
-	}
-	c := jsv.NewCompiler()
-	c.DefaultDraft(jsv.Draft2020)
-	c.AssertFormat()
-	if err = c.AddResource(schemaURL, doc); err != nil {
-		return nil, fmt.Errorf("load the validation schema: %w", err)
-	}
+	c := schema.NewCompiler(root)
 	v := &validators{}
-	if v.request, err = c.Compile(schemaURL + "#/$defs/request"); err != nil {
+	var err error
+	if v.request, err = c.Compile("#/$defs/request"); err != nil {
 		return nil, fmt.Errorf("compile the request schema: %w", err)
 	}
 	if _, ok := object(root["$defs"])["output"]; ok {
-		if v.response, err = c.Compile(schemaURL + "#/$defs/output"); err != nil {
+		if v.response, err = c.Compile("#/$defs/output"); err != nil {
 			return nil, fmt.Errorf("compile the response schema: %w", err)
 		}
 	}
@@ -156,7 +134,7 @@ func compileValidators(root map[string]any) (*validators, error) {
 // decodeInstance decodes JSON the way the validator reads it, with numbers
 // kept exact.
 func decodeInstance(data []byte) (any, error) {
-	v, err := jsv.UnmarshalJSON(bytes.NewReader(data))
+	v, err := schema.Decode(data)
 	if err != nil {
 		return nil, fmt.Errorf("decode JSON: %w", err)
 	}
@@ -166,16 +144,7 @@ func decodeInstance(data []byte) (any, error) {
 // validateRequest validates the bound parameters and the body, skipping the
 // parameters binding already reported.
 func (v *validators) validateRequest(instance map[string]any, failed map[string]bool) []ValidationErrorDetail {
-	err := v.request.Validate(instance)
-	if err == nil {
-		return nil
-	}
-	ve, ok := errors.AsType[*jsv.ValidationError](err)
-	if !ok {
-		return []ValidationErrorDetail{{Loc: []any{inBody}, Type: errTypeValue, Msg: err.Error()}}
-	}
-	var out []ValidationErrorDetail
-	collectErrors(ve, instance, nil, &out)
+	out := details(v.request.Validate(instance), nil)
 	return slices.DeleteFunc(out, func(d ValidationErrorDetail) bool {
 		if len(d.Loc) != 2 || d.Type != errTypeMissing {
 			return false
@@ -197,9 +166,8 @@ func (o *operation[In, Out]) validateResponse(req *http.Request, st *requestStat
 	if _, raw := body.([]byte); raw {
 		return nil
 	}
-	v, err := o.validators()
-	if err != nil || v.response == nil {
-		return err
+	if o.validators.response == nil {
+		return nil
 	}
 	data, err := serialize(req, body)
 	if err != nil {
@@ -209,71 +177,42 @@ func (o *operation[In, Out]) validateResponse(req *http.Request, st *requestStat
 	if err != nil {
 		return err
 	}
-	err = v.response.Validate(instance)
-	if err == nil {
+	failures := o.validators.response.Validate(instance)
+	if len(failures) == 0 {
 		return nil
 	}
-	var details []ValidationErrorDetail
-	if ve, ok := errors.AsType[*jsv.ValidationError](err); ok {
-		collectErrors(ve, instance, []any{locResponse}, &details)
-	} else {
-		details = []ValidationErrorDetail{{Loc: []any{locResponse}, Type: errTypeValue, Msg: err.Error()}}
-	}
-	return &ResponseValidationError{Errors: details, StatusCode: status, Body: body}
+	return &ResponseValidationError{Errors: details(failures, []any{locResponse}), StatusCode: status, Body: body}
 }
 
-// printer writes the messages of validation errors, for logs.
-var printer = sync.OnceValue(func() *message.Printer { return message.NewPrinter(language.English) })
-
-// collectErrors turns the engine's error tree into Pydantic-like details.
-func collectErrors(ve *jsv.ValidationError, instance any, prefix []any, out *[]ValidationErrorDetail) {
-	loc := append(slices.Clone(prefix), instanceLoc(instance, ve.InstanceLocation)...)
-	add := func(typ string) {
-		*out = append(*out, ValidationErrorDetail{Loc: loc, Type: typ, Msg: ve.ErrorKind.LocalizedString(printer())})
-	}
-	switch k := ve.ErrorKind.(type) {
-	case *kind.Required:
-		for _, name := range k.Missing {
-			*out = append(*out, ValidationErrorDetail{Loc: append(slices.Clone(loc), name), Type: errTypeMissing, Msg: "Field required"})
-		}
-	case *kind.AdditionalProperties:
-		for _, name := range k.Properties {
-			*out = append(*out, ValidationErrorDetail{Loc: append(slices.Clone(loc), name), Type: "extra_forbidden", Msg: "Extra inputs are not permitted"})
-		}
-	case *kind.Type:
-		add(typeError(k))
-	case *kind.Format:
-		add(formatError(k.Want))
-	case *kind.AnyOf, *kind.OneOf:
-		causes := slices.DeleteFunc(slices.Clone(ve.Causes), onlyNullMismatch)
-		if len(causes) == 0 {
-			add(errTypeValue)
-		}
-		for _, c := range causes {
-			collectErrors(c, instance, prefix, out)
-		}
-	default:
-		if typ, ok := keywordError(ve); ok {
-			add(typ)
-			return
-		}
-		for _, c := range ve.Causes {
-			collectErrors(c, instance, prefix, out)
+// details turns the failures of a schema into Pydantic-like details, at
+// prefix.
+func details(failures []schema.Failure, prefix []any) []ValidationErrorDetail {
+	var out []ValidationErrorDetail
+	for i := range failures {
+		f := &failures[i]
+		loc := append(slices.Clone(prefix), f.Loc...)
+		switch f.Keyword {
+		case "required":
+			for _, name := range f.Names {
+				out = append(out, ValidationErrorDetail{Loc: append(slices.Clone(loc), name), Type: errTypeMissing, Msg: "Field required"})
+			}
+		case "additionalProperties":
+			for _, name := range f.Names {
+				out = append(out, ValidationErrorDetail{Loc: append(slices.Clone(loc), name), Type: "extra_forbidden", Msg: "Extra inputs are not permitted"})
+			}
+		case "type":
+			out = append(out, ValidationErrorDetail{Loc: loc, Type: typeError(f.Got, f.Want), Msg: f.Msg})
+		case "format":
+			out = append(out, ValidationErrorDetail{Loc: loc, Type: formatError(f.Format), Msg: f.Msg})
+		default:
+			typ, ok := keywordErrors[f.Keyword]
+			if !ok {
+				typ = errTypeValue
+			}
+			out = append(out, ValidationErrorDetail{Loc: loc, Type: typ, Msg: f.Msg})
 		}
 	}
-}
-
-// keywordError maps a failed keyword without causes to its error type.
-func keywordError(ve *jsv.ValidationError) (string, bool) {
-	if len(ve.Causes) > 0 {
-		return "", false
-	}
-	if kp := ve.ErrorKind.KeywordPath(); len(kp) > 0 {
-		if typ, ok := keywordErrors[kp[0]]; ok {
-			return typ, true
-		}
-	}
-	return errTypeValue, true
+	return out
 }
 
 var keywordErrors = map[string]string{
@@ -293,22 +232,9 @@ var keywordErrors = map[string]string{
 	"maxProperties":    "too_long",
 }
 
-// onlyNullMismatch reports a union branch that failed only because the value
-// is not null: the nullable side of an optional value, which says nothing
-// about what is wrong.
-func onlyNullMismatch(ve *jsv.ValidationError) bool {
-	if t, ok := ve.ErrorKind.(*kind.Type); ok {
-		return len(t.Want) == 1 && t.Want[0] == typeNull
-	}
-	if len(ve.Causes) == 1 {
-		return onlyNullMismatch(ve.Causes[0])
-	}
-	return false
-}
-
-func typeError(k *kind.Type) string {
+func typeError(got string, wants []string) string {
 	want := ""
-	for _, w := range k.Want {
+	for _, w := range wants {
 		if w != typeNull {
 			want = w
 			break
@@ -316,7 +242,7 @@ func typeError(k *kind.Type) string {
 	}
 	switch want {
 	case typeInteger:
-		switch k.Got {
+		switch got {
 		case typeString:
 			return errTypeIntParsing
 		case "number":
@@ -325,14 +251,14 @@ func typeError(k *kind.Type) string {
 			return "int_type"
 		}
 	case "number":
-		if k.Got == typeString {
+		if got == typeString {
 			return "float_parsing"
 		}
 		return "float_type"
 	case typeString:
 		return "string_type"
 	case "boolean":
-		if k.Got == typeString {
+		if got == typeString {
 			return "bool_parsing"
 		}
 		return "bool_type"
@@ -368,33 +294,6 @@ func formatError(format string) string {
 	default:
 		return errTypeValue
 	}
-}
-
-// instanceLoc converts the engine's location to Python's: array indexes as
-// ints.
-func instanceLoc(instance any, path []string) []any {
-	loc := make([]any, 0, len(path))
-	cur := instance
-	for _, seg := range path {
-		switch c := cur.(type) {
-		case []any:
-			i, err := strconv.Atoi(seg)
-			if err == nil && i >= 0 && i < len(c) {
-				loc = append(loc, i)
-				cur = c[i]
-				continue
-			}
-			loc = append(loc, seg)
-			cur = nil
-		case map[string]any:
-			loc = append(loc, seg)
-			cur = c[seg]
-		default:
-			loc = append(loc, seg)
-			cur = nil
-		}
-	}
-	return loc
 }
 
 var locationRank = map[string]int{inPath: 0, inQuery: 1, inHeader: 2, inCookie: 3, inBody: 4, locResponse: 5}
